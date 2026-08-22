@@ -32,7 +32,7 @@
 &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans    &trans    &trans    &trans  &trans
 &trans  &trans  &trans  &trans  &trans  &trans  &trans  &mkp MB1  &mkp MB3  &mkp MB2  &trans  &trans
 &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans    &trans    &trans    &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans    &trans    &trans    &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans    &to 0     &trans    &trans  &trans
             >;
         };
 
@@ -48,7 +48,7 @@
         layer_3 {
             bindings = <
 &out OUT_USB    &kp F1        &kp F2        &kp F3         &kp F4         &kp F5   &kp LG(LS(N3))  &kp LS(LG(N4))  &kp LS(LG(N5))  &trans              &trans              &kp LC(LG(Q))
-&out OUT_BLE    &kp F6        &kp F7        &kp F8         &kp F9         &kp F10  &kp LA(A)       &kp LA(LG(S))   &trans          &trans              &trans              &trans
+&out OUT_BLE    &kp F6        &kp F7        &kp F8         &kp F9         &kp F10  &kp LA(A)       &kp LA(LG(S))   &kp LA(LG(K))   &trans              &trans              &trans
 &bt BT_CLR_ALL  &kp F11       &kp F12       &kp LA(LG(C))  &kp LA(LG(V))  &trans   &trans          &to 0           &trans          &trans              &trans              &trans         &kp LC(UP_ARROW)  &trans
 &bt BT_SEL 0    &bt BT_SEL 1  &bt BT_SEL 2  &bt BT_SEL 3   &bt BT_SEL 4   &trans   &bt BT_NXT      &to 0           &trans          &kp LC(LEFT_ARROW)  &kp LC(DOWN_ARROW)  &kp LC(RIGHT)
             >;
@@ -59,7 +59,7 @@
 &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
 &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
 &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &to 4   &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &to 0   &trans  &trans  &trans
             >;
         };
     };
