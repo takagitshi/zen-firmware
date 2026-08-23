@@ -8,10 +8,19 @@
     combos {
         compatible = "zmk,combos";
 
-        bt_clear {
-            bindings = <&bt BT_CLR>;
-            key-positions = <28 29>;
-            layers = <2>;
+        left-click {
+            bindings = <&mkp MB1>;
+            key-positions = <19 20>;
+        };
+
+        middle-click {
+            bindings = <&mkp MB3>;
+            key-positions = <21 20>;
+        };
+
+        right-click {
+            bindings = <&mkp MB2>;
+            key-positions = <19 21>;
         };
     };
 
@@ -20,19 +29,19 @@
 
         layer_0 {
             bindings = <
-&kp ESC           &kp Q         &kp W             &kp E     &kp R                        &kp T                   &kp Y        &kp U          &kp I  &kp O           &kp P           &mo 4
-&kp TAB           &kp A         &kp S             &kp D     &kp F                        &kp G                   &kp H        &kp J          &kp K  &kp L           &kp SEMICOLON   &kp MINUS
-&kp LSHFT         &kp Z         &kp X             &kp C     &kp V                        &kp B                   &kp DELETE   &kp BACKSPACE  &kp N  &kp M           &kp COMMA       &kp DOT          &kp UP_ARROW  &mt RSHFT QUESTION
-&kp LEFT_COMMAND  &kp LEFT_ALT  &kp LEFT_CONTROL  &mkp MB1  &mt LEFT_COMMAND LANGUAGE_2  &mt LEFT_CONTROL LANG1  &lt 2 SPACE  &lt 1 ENTER    &mo 3  &kp LEFT_ARROW  &kp DOWN_ARROW  &kp RIGHT_ARROW
+&kp ESC           &kp Q         &kp W             &kp E     &kp R                        &kp T                   &kp Y        &kp U          &kp I  &kp O           &kp P            &kp TILDE
+&kp TAB           &kp A         &kp S             &kp D     &kp F                        &kp G                   &kp H        &kp J          &kp K  &kp L           &lt 4 SEMICOLON  &kp MINUS
+&kp LSHFT         &kp Z         &kp X             &kp C     &kp V                        &kp B                   &kp DELETE   &kp BACKSPACE  &kp N  &kp M           &kp COMMA        &kp DOT          &kp UP_ARROW  &mt RSHFT QUESTION
+&kp LEFT_COMMAND  &kp LEFT_ALT  &kp LEFT_CONTROL  &mkp MB1  &mt LEFT_COMMAND LANGUAGE_2  &mt LEFT_CONTROL LANG1  &lt 2 SPACE  &lt 5 ENTER    &mo 3  &kp LEFT_ARROW  &kp DOWN_ARROW   &kp RIGHT_ARROW
             >;
         };
 
         layer_1 {
             bindings = <
-&none  &none  &none  &none  &none  &none  &kp LG(LS(N))  &kp LG(N)  &kp LG(LA(P))  &kp LG(LS(H))     &kp F18          &mo 4
-&none  &none  &none  &none  &none  &none  &kp LG(T)      &mkp MB1   &mkp MB3       &mkp MB2          &kp LG(W)        &kp LG(Q)
-&none  &none  &none  &none  &none  &none  &none          &to 1      &msc SCRL_UP   &msc SCRL_DOWN    &kp LC(LS(TAB))  &kp LC(TAB)        &kp LC(LA(F))  &kp LC(LA(R))
-&none  &none  &none  &none  &none  &none  &none          &trans     &to 0          &kp LC(LA(LEFT))  &kp LC(DOWN)     &kp LC(LA(RIGHT))
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
             >;
         };
 
@@ -56,10 +65,19 @@
 
         layer_4 {
             bindings = <
-&none  &kp F1   &kp F2   &kp F3  &kp F4          &kp F5           &kp LG(LS(N))  &kp LG(N)  &kp LG(LA(P))  &kp LG(LS(H))     &kp F18          &kp LG(R)
-&none  &kp F6   &kp F7   &kp F8  &kp F9          &kp F10          &kp LG(T)      &mkp MB1   &mkp MB3       &mkp MB2          &kp LG(W)        &kp LG(Q)
-&none  &kp F11  &kp F12  &none   &msc SCRL_LEFT  &msc SCRL_RIGHT  &trans         &trans     &msc SCRL_UP   &msc SCRL_DOWN    &kp LC(LS(TAB))  &kp LC(TAB)        &kp LC(LA(F))  &kp LC(LA(R))
-&none  &none    &none    &none   &none           &none            &trans         &trans     &to 0          &kp LA(LC(LEFT))  &kp LG(DOWN)     &kp LG(LA(RIGHT))
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+            >;
+        };
+
+        layer_5 {
+            bindings = <
+&none  &none  &none  &none  &none              &none            &kp LG(LA(P))  &kp LG(LC(N1))  &kp LG(LS(H))    &kp LG(R)         &msc SCRL_LEFT  &msc SCRL_RIGHT
+&none  &none  &none  &none  &none              &none            &msc SCRL_UP   &msc SCRL_DOWN  &kp LC(LS(TAB))  &kp LC(TAB)       &mo 4           &kp LG(W)
+&none  &none  &none  &none  &none              &none            &trans         &to 5           &kp LG(T)        &kp LG(LS(N))     &kp LG(N)       &kp F18            &kp LC(LA(F))  &kp LG(Q)
+&none  &none  &none  &none  &kp C_VOLUME_DOWN  &kp C_VOLUME_UP  &trans         &trans          &to 0            &kp LC(LA(LEFT))  &kp LC(DOWN)    &kp LC(LA(RIGHT))
             >;
         };
     };
