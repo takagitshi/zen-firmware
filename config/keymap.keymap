@@ -13,13 +13,13 @@
             key-positions = <19 20>;
         };
 
-        middle-click {
-            bindings = <&mkp MB3>;
+        right-click {
+            bindings = <&mkp MB2>;
             key-positions = <21 20>;
         };
 
-        right-click {
-            bindings = <&mkp MB2>;
+        middle-click {
+            bindings = <&mkp MB3>;
             key-positions = <19 21>;
         };
     };
@@ -49,7 +49,7 @@
             bindings = <
 &kp AT_SIGN    &kp EXCLAMATION       &kp DOUBLE_QUOTES  &kp HASH           &kp DOLLAR            &kp PERCENT            &kp COMMA   &kp N7  &kp N8  &kp N9  &kp PLUS   &kp LA(Y)
 &kp AMPERSAND  &kp TILDE             &kp LEFT_BRACKET   &kp RIGHT_BRACKET  &kp LEFT_PARENTHESIS  &kp RIGHT_PARENTHESIS  &kp PERIOD  &kp N4  &kp N5  &kp N6  &kp MINUS  &kp EQUAL
-&kp SQT        &kp NON_US_BACKSLASH  &kp LEFT_BRACE     &kp RIGHT_BRACE    &kp LESS_THAN         &kp GREATER_THAN       &to 2       &trans  &kp N0  &kp N1  &kp N2     &kp N3     &kp ASTERISK  &kp COLON
+&kp SQT        &kp NON_US_BACKSLASH  &kp LEFT_BRACE     &kp RIGHT_BRACE    &kp LESS_THAN         &kp GREATER_THAN       &trans      &trans  &kp N0  &kp N1  &kp N2     &kp N3     &kp ASTERISK  &kp COLON
 &kp PIPE       &kp GRAVE             &kp CARET          &none              &kp C_VOLUME_DOWN     &kp C_VOLUME_UP        &trans      &trans  &to 0   &none   &kp SLASH  &none
             >;
         };
@@ -76,7 +76,7 @@
             bindings = <
 &none  &none  &none  &none  &none              &none            &kp LG(LA(P))  &kp LG(LC(N1))  &kp LG(LS(H))    &kp LG(R)         &msc SCRL_LEFT  &msc SCRL_RIGHT
 &none  &none  &none  &none  &none              &none            &msc SCRL_UP   &msc SCRL_DOWN  &kp LC(LS(TAB))  &kp LC(TAB)       &mo 4           &kp LG(W)
-&none  &none  &none  &none  &none              &none            &trans         &to 5           &kp LG(T)        &kp LG(LS(N))     &kp LG(N)       &kp F18            &kp LC(LA(F))  &kp LG(Q)
+&none  &none  &none  &none  &none              &none            &trans         &trans          &kp LG(T)        &kp LG(LS(N))     &kp LG(N)       &kp F18            &kp LC(LA(F))  &kp LG(Q)
 &none  &none  &none  &none  &kp C_VOLUME_DOWN  &kp C_VOLUME_UP  &trans         &trans          &to 0            &kp LC(LA(LEFT))  &kp LC(DOWN)    &kp LC(LA(RIGHT))
             >;
         };
