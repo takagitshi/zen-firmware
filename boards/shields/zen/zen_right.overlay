@@ -7,6 +7,11 @@
  * 直前 200ms 以内にキーコード入力(キー押下)があった場合は、
  * ポインティングデバイスの動きがあってもレイヤーを有効化しない。
  *
+ * excluded-positions には J(19)・K(20)・L(21)・左手最下段左端(38) を
+ * 指定している。AML有効化中にこれらのキーを押してもAMLは解除されず、
+ * それ以外のキーを押すと即座にAMLが解除される
+ * (J/K/Lはマウスクリックのコンボに使う位置、38番は左手側のLEFT_COMMAND)。
+ *
  * 別ラベルで新規インスタンスを追加する方式は採用しない: ZMK v0.3系の
  * input_processor_temp_layer ドライバは、レイヤー有効化を処理する
  * layer_action_work_cb() 内で `DEVICE_DT_INST_GET(0)` によりインスタンス0の
@@ -17,12 +22,13 @@
  */
 &zip_temp_layer {
     require-prior-idle-ms = <200>;
+    excluded-positions = <19 20 21 38>;
 };
 
 &pointing_listener {
     input-processors =
         <&zip_xy_transform (INPUT_TRANSFORM_X_INVERT | INPUT_TRANSFORM_Y_INVERT)>,
-        <&zip_temp_layer 1 500>;
+        <&zip_temp_layer 1 3000>;
 
     scroller {
         layers = <4>;
