@@ -15,6 +15,9 @@
         compatible = "zmk,input-listener";
         device = <&pointing_device_split>;
         status = "okay";
-        input-processors = <&zip_xy_scaler 1 56>;
+        input-processors =
+            <&zip_xy_scaler 1 56>,
+            <&gesture_2_processor>,
+            <&gesture_1_processor>;
      };
 };

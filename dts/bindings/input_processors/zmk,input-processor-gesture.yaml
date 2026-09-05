@@ -1,0 +1,34 @@
+# Copyright (c) 2026 Takashi Imai
+# SPDX-License-Identifier: MIT
+
+description: Layer-aware pointing gesture input processor
+
+compatible: "zmk,input-processor-gesture"
+
+include: ip_zero_param.yaml
+
+properties:
+  layer:
+    type: int
+    required: true
+    description: Layer ID on which the processor consumes relative X/Y input
+
+  threshold:
+    type: int
+    required: true
+    description: Manhattan distance required to recognize one gesture
+
+  cooldown-ms:
+    type: int
+    required: true
+    description: Motion discard interval after a direction is recognized
+
+  reset-on-layer:
+    type: int
+    required: true
+    description: Additional mutually exclusive layer whose transitions reset accumulated motion
+
+  bindings:
+    type: phandle-array
+    required: true
+    description: Behaviors for left and right gestures, in that order

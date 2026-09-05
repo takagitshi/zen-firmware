@@ -1,5 +1,6 @@
 #include <zephyr/dt-bindings/gpio/nordic-nrf-gpio.h>
 #include <dt-bindings/input/input-event-codes.h>
+#include <dt-bindings/zmk/keys.h>
 #include <dt-bindings/zmk/matrix_transform.h>
 #include "zen_layouts.dtsi"
 
@@ -68,6 +69,28 @@
         type = <INPUT_EV_REL>;
         codes = <INPUT_REL_WHEEL INPUT_REL_HWHEEL>;
         track-remainders;
+    };
+
+    gesture_1_processor: gesture_1_processor {
+        compatible = "zmk,input-processor-gesture";
+        #input-processor-cells = <0>;
+        status = "disabled";
+        layer = <3>;
+        threshold = <30>;
+        cooldown-ms = <150>;
+        reset-on-layer = <2>;
+        bindings = <&kp LC(LS(TAB))>, <&kp LC(TAB)>;
+    };
+
+    gesture_2_processor: gesture_2_processor {
+        compatible = "zmk,input-processor-gesture";
+        #input-processor-cells = <0>;
+        status = "disabled";
+        layer = <4>;
+        threshold = <30>;
+        cooldown-ms = <150>;
+        reset-on-layer = <2>;
+        bindings = <&kp LC(LEFT_ARROW)>, <&kp LC(RIGHT_ARROW)>;
     };
 
     pointing_listener: pointing_listener {

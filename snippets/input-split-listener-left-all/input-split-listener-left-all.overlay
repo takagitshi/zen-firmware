@@ -51,10 +51,12 @@
         status = "okay";
         input-processors =
             <&zip_xy_transform (INPUT_TRANSFORM_XY_SWAP | INPUT_TRANSFORM_X_INVERT | INPUT_TRANSFORM_Y_INVERT)>,
+            <&gesture_2_processor>,
+            <&gesture_1_processor>,
             <&zip_temp_layer 1 500>;
 
         scroller {
-            layers = <4>;
+            layers = <2>;
             input-processors =
                 <&zip_xy_scaler 1 56>,
                 <&zip_xy_transform (INPUT_TRANSFORM_XY_SWAP | INPUT_TRANSFORM_X_INVERT)>,
@@ -70,10 +72,12 @@
         status = "okay";
         input-processors =
             <&zip_xy_transform (INPUT_TRANSFORM_X_INVERT | INPUT_TRANSFORM_Y_INVERT)>,
+            <&gesture_2_processor>,
+            <&gesture_1_processor>,
             <&zip_temp_layer 1 500>;
 
         scroller {
-            layers = <4>;
+            layers = <2>;
             input-processors =
                 <&zip_xy_scaler 1 56>,
                 <&zip_xy_to_scroll_mapper>,
@@ -88,10 +92,12 @@
         status = "okay";
         input-processors =
             <&zip_xy_transform (INPUT_TRANSFORM_X_INVERT | INPUT_TRANSFORM_Y_INVERT)>,
+            <&gesture_2_processor>,
+            <&gesture_1_processor>,
             <&zip_temp_layer 1 500>;
 
         scroller {
-            layers = <4>;
+            layers = <2>;
             input-processors =
                 <&zip_xy_scaler 1 960>,
                 <&zip_xy_transform (INPUT_TRANSFORM_Y_INVERT)>,

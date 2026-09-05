@@ -25,13 +25,23 @@
     excluded-positions = <19 20 21 22 24 38>;
 };
 
+&gesture_1_processor {
+    status = "okay";
+};
+
+&gesture_2_processor {
+    status = "okay";
+};
+
 &pointing_listener {
     input-processors =
         <&zip_xy_transform (INPUT_TRANSFORM_X_INVERT | INPUT_TRANSFORM_Y_INVERT)>,
+        <&gesture_2_processor>,
+        <&gesture_1_processor>,
         <&zip_temp_layer 1 30000>;
 
     scroller {
-        layers = <4>;
+        layers = <2>;
         input-processors =
             <&zip_xy_transform (INPUT_TRANSFORM_Y_INVERT)>,
             <&zip_xy_to_scroll_mapper>,
