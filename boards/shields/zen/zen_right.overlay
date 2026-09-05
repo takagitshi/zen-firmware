@@ -4,7 +4,7 @@
 
 /* AML (Auto Mouse Layer) がタイピング中の振動で誤爆しないよう、
  * デフォルトの zip_temp_layer に require-prior-idle-ms を追加する。
- * 直前 200ms 以内にキーコード入力(キー押下)があった場合は、
+ * 直前 300ms 以内にキーコード入力(キー押下)があった場合は、
  * ポインティングデバイスの動きがあってもレイヤーを有効化しない。
  *
  * excluded-positions には J(19)・K(20)・L(21)・セミコロン(22)・左Shift(24)・左手最下段左端(38) を
@@ -21,7 +21,7 @@
  * そのため既存の zip_temp_layer 単一インスタンスにプロパティを追加する方式とする。
  */
 &zip_temp_layer {
-    require-prior-idle-ms = <200>;
+    require-prior-idle-ms = <300>;
     excluded-positions = <19 20 21 22 24 38>;
 };
 
