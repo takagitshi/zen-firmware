@@ -12,6 +12,13 @@ config ZMK_INPUT_PROCESSOR_GESTURE
     help
       Enable the layer-aware pointing gesture input processor.
 
+config ZEN_DYA_PMW3610_SETTINGS
+    bool "DYA Studio settings for the ZEN PMW3610 trackball"
+    depends on PMW3610_ALT
+    depends on ZMK_CUSTOM_SETTINGS
+    help
+      Expose only PMW3610 CPI and scroll divisor through DYA Studio.
+
 menuconfig PMW3610_ALT
   bool "PMW3610 mouse optical sensor"
   select SPI

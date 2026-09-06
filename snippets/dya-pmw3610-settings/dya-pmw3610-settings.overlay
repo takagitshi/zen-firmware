@@ -1,0 +1,15 @@
+#include <dt-bindings/zmk/input_transform.h>
+
+&pmw3610_scroll_scaler {
+    compatible = "zen,input-processor-runtime-scaler";
+    #input-processor-cells = <0>;
+};
+
+&pointing_listener {
+    scroller {
+        input-processors =
+            <&zip_xy_transform (INPUT_TRANSFORM_XY_SWAP | INPUT_TRANSFORM_Y_INVERT)>,
+            <&zip_xy_to_scroll_mapper>,
+            <&pmw3610_scroll_scaler>;
+    };
+};
