@@ -4,13 +4,9 @@
 #include <dt-bindings/zmk/outputs.h>
 #include <dt-bindings/zmk/pointing.h>
 
-&lt {
-    tapping-term-ms = <300>;
-};
+&lt { tapping-term-ms = <300>; };
 
-&mt {
-    tapping-term-ms = <300>;
-};
+&mt { tapping-term-ms = <300>; };
 
 / {
     combos { compatible = "zmk,combos"; };
@@ -20,7 +16,7 @@
 
         layer_0 {
             bindings = <
-&kp ESC           &kp Q         &kp W             &kp E     &kp R                        &kp T                   &kp Y        &kp U          &kp I    &kp O           &kp P            &kp TILDE
+&kp ESC           &kp Q         &kp W             &kp E     &kp R                        &kp T                   &kp Y        &kp U          &kp I    &kp O           &kp P            &lt 8 TILDE
 &kp TAB           &kp A         &kp S             &kp D     &kp F                        &kp G                   &kp H        &kp J          &kp K    &kp L           &lt 2 SEMICOLON  &kp MINUS
 &kp LSHFT         &kp Z         &kp X             &kp C     &kp V                        &kp B                   &kp DELETE   &kp BACKSPACE  &lt 4 N  &lt 3 M         &kp COMMA        &kp DOT          &kp UP_ARROW  &mt RSHFT QUESTION
 &kp LEFT_COMMAND  &kp LEFT_ALT  &kp LEFT_CONTROL  &kp CAPS  &mt LEFT_COMMAND LANGUAGE_2  &mt LEFT_CONTROL LANG1  &lt 5 SPACE  &lt 6 ENTER    &mo 7    &kp LEFT_ARROW  &kp DOWN_ARROW   &kp RIGHT_ARROW
@@ -87,6 +83,15 @@
 &out OUT_USB    &kp F6        &kp F7        &kp F8         &kp F9         &kp F10     &kp LA(A)       &kp LA(LG(S))   &kp LA(LG(K))   &trans              &trans              &trans
 &out OUT_BLE    &kp F11       &kp F12       &kp LA(LG(C))  &kp LA(LG(V))  &none       &trans          &trans          &trans          &trans              &trans              &trans         &kp LC(UP_ARROW)  &trans
 &bt BT_SEL 0    &bt BT_SEL 1  &bt BT_SEL 2  &bt BT_SEL 3   &bt BT_SEL 4   &bt BT_NXT  &trans          &trans          &trans          &kp LC(LEFT_ARROW)  &kp LC(DOWN_ARROW)  &kp LC(RIGHT)
+            >;
+        };
+
+        layer_8 {
+            bindings = <
+&none  &none  &none  &none  &none  &bootloader  &bootloader  &none  &none  &none  &none  &none
+&none  &none  &none  &none  &none  &none        &none        &none  &none  &none  &none  &none
+&none  &none  &none  &none  &none  &none        &none        &none  &none  &none  &none  &none  &none  &none
+&none  &none  &none  &none  &none  &none        &none        &none  &none  &none  &none  &none
             >;
         };
     };
