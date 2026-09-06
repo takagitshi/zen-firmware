@@ -1,4 +1,0 @@
-name: dya-pmw3610-settings
-append:
-  EXTRA_DTC_OVERLAY_FILE: dya-pmw3610-settings.overlay
-  EXTRA_CONF_FILE: dya-pmw3610-settings.conf

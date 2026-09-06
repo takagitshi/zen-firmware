@@ -1,15 +1,23 @@
 #include <dt-bindings/zmk/input_transform.h>
 #include <input/processors/runtime-input-processor.dtsi>
 
+&mouse_runtime_input_processor {
+    scale-multiplier = <1>;
+    scale-divisor = <1>;
+    track-remainders;
+};
+
 &scroll_runtime_input_processor {
-    scale-divisor = <30>;
+    scale-multiplier = <1>;
+    scale-divisor = <40>;
+    track-remainders;
 };
 
 &pointing_listener {
     input-processors =
         <&zip_xy_transform (INPUT_TRANSFORM_XY_SWAP)>,
-        <&gesture_2_processor>,
-        <&gesture_1_processor>,
+        <&pmw_gesture_2_processor>,
+        <&pmw_gesture_1_processor>,
         <&zip_temp_layer 1 30000>,
         <&mouse_runtime_input_processor>;
 

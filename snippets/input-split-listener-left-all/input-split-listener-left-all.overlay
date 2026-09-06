@@ -1,6 +1,29 @@
 #include <dt-bindings/zmk/input_transform.h>
 
 / {
+    /* CPI 800 yields 4/3 as many raw counts as the former CPI 600 setup.
+     * Gestures run before pointer scaling, so threshold 40 preserves the
+     * original physical travel. PAW3222 and trackpad keep threshold 30. */
+    pmw_gesture_1_processor: pmw_gesture_1_processor {
+        compatible = "zmk,input-processor-gesture";
+        #input-processor-cells = <0>;
+        layer = <3>;
+        threshold = <40>;
+        cooldown-ms = <150>;
+        reset-on-layer = <2>;
+        bindings = <&kp LC(LS(TAB))>, <&kp LC(TAB)>;
+    };
+
+    pmw_gesture_2_processor: pmw_gesture_2_processor {
+        compatible = "zmk,input-processor-gesture";
+        #input-processor-cells = <0>;
+        layer = <4>;
+        threshold = <40>;
+        cooldown-ms = <150>;
+        reset-on-layer = <2>;
+        bindings = <&kp LC(LEFT_ARROW)>, <&kp LC(RIGHT_ARROW)>;
+    };
+
     left_paw3222_scroll_scaler: left_paw3222_scroll_scaler {
         compatible = "zmk,input-processor-scaler";
         #input-processor-cells = <2>;
@@ -51,8 +74,8 @@
         status = "okay";
         input-processors =
             <&zip_xy_transform (INPUT_TRANSFORM_XY_SWAP | INPUT_TRANSFORM_X_INVERT | INPUT_TRANSFORM_Y_INVERT)>,
-            <&gesture_2_processor>,
-            <&gesture_1_processor>,
+            <&pmw_gesture_2_processor>,
+            <&pmw_gesture_1_processor>,
             <&zip_temp_layer 1 500>;
 
         scroller {
@@ -61,7 +84,7 @@
                 <&zip_xy_scaler 1 56>,
                 <&zip_xy_transform (INPUT_TRANSFORM_XY_SWAP | INPUT_TRANSFORM_X_INVERT)>,
                 <&zip_xy_to_scroll_mapper>,
-                <&left_pmw3610_scroll_scaler 1 20>;
+                <&left_pmw3610_scroll_scaler 3 80>;
             process-next;
         };
     };
