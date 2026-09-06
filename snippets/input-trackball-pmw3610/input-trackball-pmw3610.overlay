@@ -1,16 +1,6 @@
 
 #include <dt-bindings/zmk/input_transform.h>
 
-/ {
-    pmw3610_scroll_scaler: pmw3610_scroll_scaler {
-        compatible = "zmk,input-processor-scaler";
-        #input-processor-cells = <2>;
-        type = <INPUT_EV_REL>;
-        codes = <INPUT_REL_WHEEL INPUT_REL_HWHEEL>;
-        track-remainders;
-    };
-};
-
 &spi0 {
     status = "okay";
     compatible = "nordic,nrf-spim";
@@ -21,7 +11,7 @@
 
     trackball: pointing_device: pointing_device@0 {
         status = "okay";
-        compatible = "pixart,pmw3610-alt";
+        compatible = "cormoran,pmw3610";
         reg = <0>;
         spi-max-frequency = <2000000>;
         irq-gpios = <&gpio0 19 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
@@ -30,22 +20,6 @@
         x-input-code = <INPUT_REL_X>;
         y-input-code = <INPUT_REL_Y>;
         force-awake;
-    };
-};
-
-&pointing_listener {
-    input-processors =
-        <&zip_xy_transform (INPUT_TRANSFORM_XY_SWAP)>,
-        <&gesture_2_processor>,
-        <&gesture_1_processor>,
-        <&zip_temp_layer 1 30000>;
-
-    scroller {
-        layers = <2>;
-        input-processors =
-            <&zip_xy_transform (INPUT_TRANSFORM_XY_SWAP | INPUT_TRANSFORM_Y_INVERT)>,
-            <&zip_xy_to_scroll_mapper>,
-            <&pmw3610_scroll_scaler 1 30>;
-        process-next;
+        settings-id = "trackball";
     };
 };
