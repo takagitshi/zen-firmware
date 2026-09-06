@@ -143,9 +143,22 @@ def verify_sources(repo: Path) -> None:
     for setting in (
         "require-prior-idle-ms = <300>;",
         "excluded-positions = <19 20 21 22 24 38>;",
-        "<&zip_temp_layer 1 30000>;",
+        "<&zip_temp_layer 1 10000>;",
     ):
         require(right_overlay_text, setting, right_overlay)
+
+    input_listener_overlay = repo / "snippets/input-listener/input-listener.overlay"
+    input_listener_text = read_text(input_listener_overlay)
+    for setting in (
+        "&mkp_input_listener {",
+        "input-processors = <&zip_temp_layer 1 10000>;",
+    ):
+        require(input_listener_text, setting, input_listener_overlay)
+
+    keymap = repo / "config/keymap.keymap"
+    keymap_text = read_text(keymap)
+    for mouse_button in ("MB1", "MB2", "MB3"):
+        require(keymap_text, f"&mkp {mouse_button}", keymap)
 
     pmw_overlay = repo / "snippets/input-trackball-pmw3610/input-trackball-pmw3610.overlay"
     pmw_overlay_text = read_text(pmw_overlay)
@@ -169,7 +182,7 @@ def verify_sources(repo: Path) -> None:
         "scale-divisor = <40>;",
         "<&pmw_gesture_2_processor>,",
         "<&pmw_gesture_1_processor>,",
-        "<&zip_temp_layer 1 30000>,",
+        "<&zip_temp_layer 1 10000>,",
         "<&mouse_runtime_input_processor>;",
         "<&scroll_runtime_input_processor>;",
     ):
@@ -246,7 +259,7 @@ def verify_build(build_dir: Path) -> None:
         "pmw_gesture_2_processor: pmw_gesture_2_processor",
         "threshold = < 0x1e >;",
         "threshold = < 0x28 >;",
-        "< &pmw_gesture_2_processor >, < &pmw_gesture_1_processor >, < &zip_temp_layer 0x1 0x7530 >, < &mouse_runtime_input_processor >;",
+        "< &pmw_gesture_2_processor >, < &pmw_gesture_1_processor >, < &zip_temp_layer 0x1 0x2710 >, < &mouse_runtime_input_processor >;",
         "< &pmw_gesture_2_processor >, < &pmw_gesture_1_processor >, < &zip_temp_layer 0x1 0x1f4 >;",
         "< &zip_xy_to_scroll_mapper >, < &scroll_runtime_input_processor >;",
         "< &zip_xy_scaler 0x1 0x38 >, < &zip_xy_transform 0x3 >, < &zip_xy_to_scroll_mapper >, < &left_pmw3610_scroll_scaler 0x3 0x50 >;",
@@ -254,6 +267,18 @@ def verify_build(build_dir: Path) -> None:
         require(dts_text, setting, dts)
     reject(dts_text, 'compatible = "cormoran,pmw3610";', dts)
     reject(dts_text, "temp-layer-enabled;", dts)
+
+    mkp_listener_match = re.search(
+        r'mkp_input_listener: mkp_input_listener \{(.*?)\};',
+        dts_text,
+    )
+    if mkp_listener_match is None:
+        fail(f"{dts}: missing &mkp input listener")
+    require(
+        mkp_listener_match.group(1),
+        "input-processors = < &zip_temp_layer 0x1 0x2710 >;",
+        dts,
+    )
 
     mouse_match = re.search(
         r'mouse_runtime_input_processor: mouse_runtime_input_processor \{(.*?)\};',

@@ -2,3 +2,8 @@
     status = "okay";
     device = <&pointing_device>;
 };
+
+/* &mkp の押下・解放イベントでも、ポインター移動と同じAMLタイマーを更新する。 */
+&mkp_input_listener {
+    input-processors = <&zip_temp_layer 1 10000>;
+};
