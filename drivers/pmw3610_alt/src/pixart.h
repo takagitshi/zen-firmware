@@ -10,6 +10,9 @@
 #include <zephyr/drivers/spi.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/sensor.h>
+#include <zephyr/sys/atomic.h>
+
+#include "pmw3610_logic.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -18,16 +21,18 @@ extern "C" {
 /* device data structure */
 struct pixart_data {
     const struct device          *dev;
-    int64_t                      dx;
-    int64_t                      dy;
-#if CONFIG_PMW3610_ALT_REPORT_INTERVAL_MIN > 0
-    int64_t                      last_smp_time;
-    int64_t                      last_rpt_time;
-#endif
+    struct pmw3610_report_accumulator report;
     bool                         sw_smart_flag; // for pmw3610 smart algorithm
 
     struct gpio_callback         irq_gpio_cb; // motion pin irq callback
-    struct k_work                trigger_work; // realtrigger job
+    /* Both jobs run on the system work queue; the GPIO ISR only schedules trigger_work. */
+    struct k_work_delayable      trigger_work; // motion read/retry job
+#if CONFIG_PMW3610_ALT_REPORT_INTERVAL_MIN > 0
+    struct k_work_delayable      report_work; // lossless rate-limited report job
+#endif
+    uint8_t                      read_retry_delay_ms;
+    bool                         read_error_active;
+    atomic_t                     motion_work_active;
 
     struct k_work_delayable      init_work; // the work structure for delayable init steps
     int                          async_init_step;
