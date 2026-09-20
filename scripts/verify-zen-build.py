@@ -119,7 +119,7 @@ def verify_sources(repo: Path) -> None:
     right_text = read_text(right_overlay)
     for expected in (
         "require-prior-idle-ms = <300>;",
-        "excluded-positions = <19 20 21 22 24 38>;",
+        "excluded-positions = <19 20 21 24 38 39 41 42>;",
         "<&zip_temp_layer 1 10000>;",
     ):
         require(right_text, expected, right_overlay)
@@ -223,7 +223,7 @@ def verify_build(build_dir: Path) -> None:
         'compatible = "pixart,pmw3610-alt";',
         "cpi = < 0x320 >;",
         "require-prior-idle-ms = < 0x12c >;",
-        "excluded-positions = < 0x13 0x14 0x15 0x16 0x18 0x26 >;",
+        "excluded-positions = < 0x13 0x14 0x15 0x18 0x26 0x27 0x29 0x2a >;",
         "< &pmw3610_scroll_scaler 0x1 0x28 >;",
         "< &pmw_gesture_processor >, < &zip_temp_layer 0x1 0x2710 >;",
         "< &zip_xy_scaler 0x1 0x38 >, < &zip_xy_transform 0x3 >, < &zip_xy_to_scroll_mapper >, < &left_pmw3610_scroll_scaler 0x3 0x50 >;",
