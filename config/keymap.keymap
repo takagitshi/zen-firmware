@@ -9,7 +9,29 @@
 &mt { tapping-term-ms = <300>; };
 
 / {
-    combos { compatible = "zmk,combos"; };
+    combos {
+        compatible = "zmk,combos";
+
+        scroll {
+            bindings = <&mo 2>;
+            key-positions = <20 21>;
+        };
+
+        gesture {
+            bindings = <&mo 3>;
+            key-positions = <8 9>;
+        };
+
+        exit_app {
+            bindings = <&kp LG(Q)>;
+            key-positions = <9 10>;
+        };
+
+        log_off {
+            bindings = <&kp LG(LC(Q))>;
+            key-positions = <47 48>;
+        };
+    };
 
     keymap {
         compatible = "zmk,keymap";
@@ -17,20 +39,20 @@
         layer_0 {
             display-name = "Base";
             bindings = <
-&kp ESC           &kp Q         &kp W             &kp E     &kp R                        &kp T                   &kp Y        &kp U          &kp I    &kp O           &kp P            &lt 8 TILDE
-&kp TAB           &kp A         &kp S             &kp D     &kp F                        &kp G                   &kp H        &kp J          &kp K    &kp L           &lt 2 SEMICOLON  &kp MINUS
-&kp LSHFT         &kp Z         &kp X             &kp C     &kp V                        &kp B                   &kp DELETE   &kp BACKSPACE  &lt 4 N  &lt 3 M         &kp COMMA        &kp DOT          &kp UP_ARROW  &mt RSHFT QUESTION
-&kp LEFT_COMMAND  &kp LEFT_ALT  &kp LEFT_CONTROL  &kp CAPS  &mt LEFT_COMMAND LANGUAGE_2  &mt LEFT_CONTROL LANG1  &lt 5 SPACE  &lt 6 ENTER    &mo 7    &kp LEFT_ARROW  &kp DOWN_ARROW   &kp RIGHT_ARROW
+&kp ESC           &kp Q         &kp W     &kp E             &kp R                        &kp T        &kp Y        &kp U          &kp I              &kp O           &kp P           &kp TILDE
+&kp TAB           &kp A         &kp S     &kp D             &kp F                        &kp G        &kp H        &kp J          &kp K              &kp L           &kp SEMICOLON   &kp MINUS
+&kp LSHFT         &kp Z         &kp X     &kp C             &kp V                        &kp B        &kp DELETE   &kp BACKSPACE  &lt 5 N            &lt 3 M         &kp COMMA       &kp DOT          &kp UP_ARROW  &mt RSHFT QUESTION
+&kp LEFT_COMMAND  &kp LEFT_ALT  &kp CAPS  &kp LEFT_CONTROL  &mt LEFT_COMMAND LANGUAGE_2  &lt 4 LANG1  &lt 5 SPACE  &lt 6 ENTER    &kp RIGHT_COMMAND  &kp LEFT_ARROW  &kp DOWN_ARROW  &kp RIGHT_ARROW
             >;
         };
 
         layer_1 {
             display-name = "Mouse";
             bindings = <
-&trans            &trans  &trans  &trans  &trans  &trans  &trans  &trans    &trans    &trans    &trans  &trans
-&trans            &trans  &trans  &trans  &trans  &trans  &trans  &mkp MB1  &mkp MB3  &mkp MB2  &trans  &trans
-&kp LSHIFT        &trans  &trans  &trans  &trans  &trans  &trans  &trans    &trans    &trans    &trans  &trans  &trans  &trans
-&kp LEFT_COMMAND  &trans  &trans  &trans  &trans  &trans  &trans  &trans    &trans    &trans    &trans  &trans
+&trans            &trans        &trans  &trans            &trans        &trans  &trans  &trans    &trans    &trans    &trans  &trans
+&trans            &trans        &trans  &trans            &trans        &trans  &trans  &mkp MB1  &mkp MB3  &mkp MB2  &trans  &trans
+&kp LSHIFT        &trans        &trans  &trans            &trans        &trans  &trans  &trans    &trans    &trans    &trans  &trans  &trans  &trans
+&kp LEFT_COMMAND  &kp LEFT_ALT  &trans  &kp LEFT_CONTROL  &kp LEFT_GUI  &trans  &trans  &trans    &trans    &trans    &trans  &trans
             >;
         };
 
@@ -46,109 +68,71 @@
 
         layer_3 {
             display-name = "Gesture";
+
             /* Conductor-style editable gesture slots:
              * I = up, J = left, L = right, comma/< = down.
              */
+
             bindings = <
-&none  &none  &none  &none  &none  &none  &none  &none  &kp LC(DOWN_ARROW)  &none  &none  &none
-&none  &none  &none  &none  &none  &none  &none  &kp LC(RIGHT_ARROW)  &none  &kp LC(LEFT_ARROW)  &none  &none
-&none  &none  &none  &none  &none  &none  &none  &none  &none  &none  &kp LC(UP_ARROW)  &none  &none  &none
-&none  &none  &none  &none  &none  &none  &none  &none  &none  &none  &none  &none
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans              &kp LC(UP_ARROW)  &trans         &trans              &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &kp LC(LEFT_ARROW)  &trans            &kp LC(RIGHT)  &trans              &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans              &trans            &trans         &kp LC(DOWN_ARROW)  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans              &trans            &trans         &trans              &trans
             >;
         };
 
         layer_4 {
-            display-name = "User 4";
+            display-name = "symbol";
             bindings = <
-&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &kp EXCLAMATION  &kp AT_SIGN     &kp HASH        &kp DOLLAR  &kp PERCENT    &kp CARET  &kp AMPERSAND  &kp ASTRK  &kp LEFT_PARENTHESIS  &kp RIGHT_PARENTHESIS  &trans
+&trans  &kp LG(LS(N3))   &kp LG(LS(N4))  &kp LG(LS(N5))  &kp LA(A)   &kp LG(LA(S))  &kp MINUS  &kp EQUAL      &kp SLASH  &kp LEFT_BRACKET      &kp RIGHT_BRACKET      &trans
+&trans  &trans           &trans          &trans          &trans      &trans         &trans     &trans         &trans     &trans                &kp SEMICOLON          &kp SQT  &kp GRAVE  &trans
+&trans  &trans           &trans          &trans          &trans      &trans         &mo 7      &trans         &trans     &trans                &trans                 &trans
             >;
         };
 
         layer_5 {
-            display-name = "User 5";
+            display-name = "number";
             bindings = <
-&kp AT_SIGN    &kp EXCLAMATION  &kp DOUBLE_QUOTES  &kp HASH          &kp DOLLAR            &kp PERCENT            &kp COMMA   &kp N7  &kp N8  &kp N9  &kp PLUS   &kp LA(Y)
-&kp AMPERSAND  &kp TILDE        &kp LESS_THAN      &kp GREATER_THAN  &kp LEFT_PARENTHESIS  &kp RIGHT_PARENTHESIS  &kp PERIOD  &kp N4  &kp N5  &kp N6  &kp MINUS  &kp EQUAL
-&kp GRAVE      &kp BACKSLASH    &kp LEFT_BRACE     &kp RIGHT_BRACE   &kp LEFT_BRACKET      &kp RIGHT_BRACKET      &trans      &trans  &kp N0  &kp N1  &kp N2     &kp N3     &kp ASTERISK  &kp COLON
-&kp PIPE       &kp APOSTROPHE   &kp CARET          &none             &kp C_VOLUME_DOWN     &kp C_VOLUME_UP        &trans      &trans  &trans  &none   &kp SLASH  &none
+&trans  &kp F1   &kp F2   &kp F3  &kp F4  &kp F5   &kp NUMBER_7  &kp NUMBER_8  &kp NUMBER_9  &kp PLUS      &kp MINUS  &trans
+&trans  &kp F6   &kp F7   &kp F8  &kp F9  &kp F10  &kp N4        &kp NUMBER_5  &kp N6        &kp ASTERISK  &kp SLASH  &trans
+&trans  &kp F11  &kp F12  &trans  &trans  &trans   &trans        &kp NUMBER_0  &kp N1        &kp N2        &kp N3     &kp COMMA  &kp EQUAL  &trans
+&trans  &trans   &trans   &trans  &trans  &trans   &trans        &kp PERIOD    &trans        &kp COLON     &kp LA(Y)  &trans
             >;
         };
 
         layer_6 {
-            display-name = "User 6";
+            display-name = "move";
             bindings = <
-&none  &none  &none  &none  &none  &none  &kp LG(T)  &kp LG(LS(N))     &kp LG(LA(P))  &kp LG(LS(H))     &kp LC(LG(N1))     &kp LG(Q)
-&none  &none  &none  &none  &none  &none  &kp HOME   &msc MOVE_Y(-20)  &kp LG(C)      &kp LG(V)         &kp F18            &kp LG(W)
-&none  &none  &none  &none  &none  &none  &trans     &trans            &kp END        &msc MOVE_Y(20)   &kp C_VOLUME_DOWN  &kp C_VOLUME_UP    &kp LC(LA(F))  &kp LG(R)
-&none  &none  &none  &none  &none  &none  &trans     &trans            &trans         &kp LC(LA(LEFT))  &kp LC(DOWN)       &kp LC(LA(RIGHT))
+&trans  &trans  &kp LG(NUMBER_0)        &kp LG(MINUS)      &kp LG(PLUS)       &trans  &kp LG(T)  &kp LC(LS(TAB))  &kp UP_ARROW    &kp LC(TAB)         &kp LG(W)      &trans
+&trans  &trans  &kp K_MUTE              &kp C_VOLUME_DOWN  &kp C_VOLUME_UP    &trans  &kp LC(A)  &kp LEFT_ARROW   &kp DOWN_ARROW  &kp RIGHT_ARROW     &kp LC(E)      &trans
+&trans  &trans  &kp LA(LC(LEFT_ARROW))  &kp LA(LC(F))      &kp LA(LC(RIGHT))  &trans  &trans     &kp LG(LS(N))    &kp HOME        &kp LG(LEFT_ARROW)  &kp LG(LA(P))  &kp LG(RIGHT_ARROW)  &kp END  &trans
+&trans  &trans  &trans                  &trans             &trans             &trans  &trans     &trans           &trans          &kp LG(R)           &kp LG(LS(H))  &trans
             >;
         };
 
         layer_7 {
-            display-name = "User 7";
+            display-name = "setting";
             bindings = <
-&bt BT_CLR_ALL  &kp F1        &kp F2        &kp F3         &kp F4         &kp F5      &kp LG(LS(N3))  &kp LS(LG(N4))  &kp LS(LG(N5))  &trans              &trans              &kp LC(LG(Q))
-&out OUT_USB    &kp F6        &kp F7        &kp F8         &kp F9         &kp F10     &kp LA(A)       &kp LA(LG(S))   &kp LA(LG(K))   &trans              &trans              &trans
-&out OUT_BLE    &kp F11       &kp F12       &kp LA(LG(C))  &kp LA(LG(V))  &none       &trans          &trans          &trans          &trans              &trans              &trans         &kp LC(UP_ARROW)  &trans
-&bt BT_SEL 0    &bt BT_SEL 1  &bt BT_SEL 2  &bt BT_SEL 3   &bt BT_SEL 4   &bt BT_NXT  &trans          &trans          &trans          &kp LC(LEFT_ARROW)  &kp LC(DOWN_ARROW)  &kp LC(RIGHT)
+&none  &out OUT_BLE  &out OUT_USB  &none  &none  &none  &bt BT_SEL 0  &bt BT_SEL 1  &bt BT_SEL 2  &bt BT_SEL 3  &bt BT_SEL 4    &none
+&none  &none         &none         &none  &none  &none  &none         &none         &none         &none         &none           &none
+&none  &none         &none         &none  &none  &none  &bootloader   &bootloader   &none         &none         &none           &none  &none  &none
+&none  &none         &none         &none  &none  &none  &none         &none         &none         &bt BT_CLR    &bt BT_CLR_ALL  &none
             >;
         };
 
         layer_8 {
             display-name = "User 8";
             bindings = <
-&studio_unlock  &none  &none  &none  &none  &bootloader  &bootloader  &none  &none  &none  &none  &none
-&none  &none  &none  &none  &none  &none        &none        &none  &none  &none  &none  &none
-&none  &none  &none  &none  &none  &none        &none        &none  &none  &none  &none  &none  &none  &none
-&none  &none  &none  &none  &none  &none        &none        &none  &none  &none  &none  &none
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
             >;
         };
 
         layer_9 {
             display-name = "User 9";
-            bindings = <
-&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
-            >;
-        };
-
-        layer_10 {
-            display-name = "User 10";
-            bindings = <
-&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
-            >;
-        };
-
-        layer_11 {
-            display-name = "User 11";
-            bindings = <
-&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
-            >;
-        };
-
-        layer_12 {
-            display-name = "User 12";
-            bindings = <
-&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
-            >;
-        };
-
-        layer_13 {
-            display-name = "User 13";
             bindings = <
 &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
 &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
