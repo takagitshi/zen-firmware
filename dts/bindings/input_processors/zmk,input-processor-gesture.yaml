@@ -28,7 +28,17 @@ properties:
     required: true
     description: Additional mutually exclusive layer whose transitions reset accumulated motion
 
-  bindings:
-    type: phandle-array
+  binding-layer:
+    type: int
     required: true
-    description: Behaviors for left and right gestures, in that order
+    description: Keymap layer containing the editable gesture action slots
+
+  left-position:
+    type: int
+    required: true
+    description: Key position to invoke for a left gesture
+
+  right-position:
+    type: int
+    required: true
+    description: Key position to invoke for a right gesture

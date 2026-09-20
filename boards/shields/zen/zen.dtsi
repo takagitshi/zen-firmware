@@ -76,10 +76,13 @@
         #input-processor-cells = <0>;
         status = "disabled";
         layer = <3>;
+        /* Gesture Settings layer: J = previous tab, L = next tab. */
+        binding-layer = <9>;
+        left-position = <19>;
+        right-position = <21>;
         threshold = <30>;
         cooldown-ms = <150>;
         reset-on-layer = <2>;
-        bindings = <&kp LC(LS(TAB))>, <&kp LC(TAB)>;
     };
 
     gesture_2_processor: gesture_2_processor {
@@ -87,10 +90,13 @@
         #input-processor-cells = <0>;
         status = "disabled";
         layer = <4>;
+        /* Gesture Settings layer: Left/Right Arrow = previous/next desktop. */
+        binding-layer = <9>;
+        left-position = <47>;
+        right-position = <49>;
         threshold = <30>;
         cooldown-ms = <150>;
         reset-on-layer = <2>;
-        bindings = <&kp LC(LEFT_ARROW)>, <&kp LC(RIGHT_ARROW)>;
     };
 
     pointing_listener: pointing_listener {

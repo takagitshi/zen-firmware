@@ -8,20 +8,24 @@
         compatible = "zmk,input-processor-gesture";
         #input-processor-cells = <0>;
         layer = <3>;
+        binding-layer = <9>;
+        left-position = <19>;
+        right-position = <21>;
         threshold = <40>;
         cooldown-ms = <150>;
         reset-on-layer = <2>;
-        bindings = <&kp LC(LS(TAB))>, <&kp LC(TAB)>;
     };
 
     pmw_gesture_2_processor: pmw_gesture_2_processor {
         compatible = "zmk,input-processor-gesture";
         #input-processor-cells = <0>;
         layer = <4>;
+        binding-layer = <9>;
+        left-position = <47>;
+        right-position = <49>;
         threshold = <40>;
         cooldown-ms = <150>;
         reset-on-layer = <2>;
-        bindings = <&kp LC(LEFT_ARROW)>, <&kp LC(RIGHT_ARROW)>;
     };
 
     left_paw3222_scroll_scaler: left_paw3222_scroll_scaler {
