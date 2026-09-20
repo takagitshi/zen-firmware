@@ -42,7 +42,7 @@
 &kp ESC           &kp Q         &kp W     &kp E             &kp R                        &kp T        &kp Y        &kp U          &kp I              &kp O           &kp P           &kp TILDE
 &kp TAB           &kp A         &kp S     &kp D             &kp F                        &kp G        &kp H        &kp J          &kp K              &kp L           &kp SEMICOLON   &kp MINUS
 &kp LSHFT         &kp Z         &kp X     &kp C             &kp V                        &kp B        &kp DELETE   &kp BACKSPACE  &lt 5 N            &lt 3 M         &kp COMMA       &kp DOT          &kp UP_ARROW  &mt RSHFT QUESTION
-&kp LEFT_COMMAND  &kp LEFT_ALT  &kp CAPS  &kp LEFT_CONTROL  &mt LEFT_COMMAND LANGUAGE_2  &lt 4 LANG1  &lt 5 SPACE  &lt 6 ENTER    &kp RIGHT_COMMAND  &kp LEFT_ARROW  &kp DOWN_ARROW  &kp RIGHT_ARROW
+&kp LEFT_COMMAND  &kp LEFT_ALT  &kp CAPS  &kp LEFT_CONTROL  &mt LEFT_COMMAND LANGUAGE_2  &lt 4 LANG1  &lt 5 SPACE  &lt 6 ENTER    &kp RIGHT_CONTROL  &kp LEFT_ARROW  &kp DOWN_ARROW  &kp RIGHT_ARROW
             >;
         };
 
