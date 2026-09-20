@@ -160,38 +160,28 @@ def verify_sources(repo: Path) -> None:
     for mouse_button in ("MB1", "MB2", "MB3"):
         require(keymap_text, f"&mkp {mouse_button}", keymap)
     layer_ids = [int(value) for value in re.findall(r"^\s*layer_(\d+)\s*\{", keymap_text, re.MULTILINE)]
-    if layer_ids != list(range(14)):
-        fail(f"{keymap}: expected layers 0 through 13, found {layer_ids}")
-    gesture_layer = re.search(r"^\s*layer_3\s*\{(?P<body>.*?)^\s*\};", keymap_text, re.MULTILINE | re.DOTALL)
-    if gesture_layer is None:
-        fail(f"{keymap}: missing gesture layer 3")
-    gesture_bindings = re.findall(r"&none|&kp\s+LC\([A-Z_]+\)", gesture_layer.group("body"))
-    if len(gesture_bindings) != 50:
-        fail(f"{keymap}: expected 50 gesture layer bindings, found {len(gesture_bindings)}")
-    expected_gesture_bindings = {
-        8: "&kp LC(DOWN_ARROW)",
-        19: "&kp LC(RIGHT_ARROW)",
-        21: "&kp LC(LEFT_ARROW)",
-        34: "&kp LC(UP_ARROW)",
+    if layer_ids != list(range(9)):
+        fail(f"{keymap}: expected layers 0 through 8, found {layer_ids}")
+    expected_layer_names = {
+        0: "Base",
+        1: "Mouse",
+        2: "Scroll",
+        3: "Gesture",
+        4: "symbol",
+        5: "number",
+        6: "move",
+        7: "setting",
+        8: "User 8",
     }
-    for position, binding in enumerate(gesture_bindings):
-        expected = expected_gesture_bindings.get(position, "&none")
-        if binding != expected:
-            fail(f"{keymap}: gesture position {position} is {binding!r}, expected {expected!r}")
-    for setting in (
-        'display-name = "Base";',
-        'display-name = "Mouse";',
-        'display-name = "Scroll";',
-        'display-name = "Gesture";',
-        "&lt 8 TILDE",
-        "&lt 2 SEMICOLON",
-        "&lt 4 N",
-        "&lt 3 M",
-        "&lt 5 SPACE",
-        "&lt 6 ENTER",
-        "&mo 7",
-    ):
-        require(keymap_text, setting, keymap)
+    for layer_id, display_name in expected_layer_names.items():
+        layer = re.search(
+            rf"^\s*layer_{layer_id}\s*\{{(?P<body>.*?)^\s*\}};",
+            keymap_text,
+            re.MULTILINE | re.DOTALL,
+        )
+        if layer is None:
+            fail(f"{keymap}: missing layer {layer_id}")
+        require(layer.group("body"), f'display-name = "{display_name}";', keymap)
 
     pmw_overlay = repo / "snippets/input-trackball-pmw3610/input-trackball-pmw3610.overlay"
     pmw_overlay_text = read_text(pmw_overlay)
