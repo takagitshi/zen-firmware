@@ -1,31 +1,27 @@
 #include <dt-bindings/zmk/input_transform.h>
-#include <input/processors/runtime-input-processor.dtsi>
 
-&mouse_runtime_input_processor {
-    scale-multiplier = <1>;
-    scale-divisor = <1>;
-    track-remainders;
-};
-
-&scroll_runtime_input_processor {
-    scale-multiplier = <1>;
-    scale-divisor = <40>;
-    track-remainders;
+/ {
+    pmw3610_scroll_scaler: pmw3610_scroll_scaler {
+        compatible = "zmk,input-processor-scaler";
+        #input-processor-cells = <2>;
+        type = <INPUT_EV_REL>;
+        codes = <INPUT_REL_WHEEL INPUT_REL_HWHEEL>;
+        track-remainders;
+    };
 };
 
 &pointing_listener {
     input-processors =
         <&zip_xy_transform (INPUT_TRANSFORM_XY_SWAP)>,
         <&pmw_gesture_processor>,
-        <&zip_temp_layer 1 10000>,
-        <&mouse_runtime_input_processor>;
+        <&zip_temp_layer 1 10000>;
 
     scroller {
         layers = <2>;
         input-processors =
             <&zip_xy_transform (INPUT_TRANSFORM_XY_SWAP | INPUT_TRANSFORM_Y_INVERT)>,
             <&zip_xy_to_scroll_mapper>,
-            <&scroll_runtime_input_processor>;
+            <&pmw3610_scroll_scaler 1 40>;
         process-next;
     };
 };

@@ -1,6 +1,4 @@
 
-#include <dt-bindings/zmk/input_transform.h>
-
 &spi0 {
     status = "okay";
     compatible = "nordic,nrf-spim";

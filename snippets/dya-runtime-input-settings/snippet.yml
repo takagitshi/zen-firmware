@@ -1,4 +1,0 @@
-name: dya-runtime-input-settings
-append:
-  EXTRA_DTC_OVERLAY_FILE: dya-runtime-input-settings.overlay
-  EXTRA_CONF_FILE: dya-runtime-input-settings.conf
