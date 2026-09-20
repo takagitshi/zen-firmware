@@ -25,7 +25,7 @@
         };
 
         layer_1 {
-            display-name = "Auto Mouse";
+            display-name = "Mouse";
             bindings = <
 &trans            &trans  &trans  &trans  &trans  &trans  &trans  &trans    &trans    &trans    &trans  &trans
 &trans            &trans  &trans  &trans  &trans  &trans  &trans  &mkp MB1  &mkp MB3  &mkp MB2  &trans  &trans
@@ -45,17 +45,20 @@
         };
 
         layer_3 {
-            display-name = "Gesture Tabs";
+            display-name = "Gesture";
+            /* Conductor-style editable gesture slots:
+             * I = up, J = left, L = right, comma/< = down.
+             */
             bindings = <
-&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
-&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&none  &none  &none  &none  &none  &none  &none  &none  &kp LC(DOWN_ARROW)  &none  &none  &none
+&none  &none  &none  &none  &none  &none  &none  &kp LC(RIGHT_ARROW)  &none  &kp LC(LEFT_ARROW)  &none  &none
+&none  &none  &none  &none  &none  &none  &none  &none  &none  &none  &kp LC(UP_ARROW)  &none  &none  &none
+&none  &none  &none  &none  &none  &none  &none  &none  &none  &none  &none  &none
             >;
         };
 
         layer_4 {
-            display-name = "Gesture Desktops";
+            display-name = "User 4";
             bindings = <
 &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
 &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
@@ -65,7 +68,7 @@
         };
 
         layer_5 {
-            display-name = "Symbols";
+            display-name = "User 5";
             bindings = <
 &kp AT_SIGN    &kp EXCLAMATION  &kp DOUBLE_QUOTES  &kp HASH          &kp DOLLAR            &kp PERCENT            &kp COMMA   &kp N7  &kp N8  &kp N9  &kp PLUS   &kp LA(Y)
 &kp AMPERSAND  &kp TILDE        &kp LESS_THAN      &kp GREATER_THAN  &kp LEFT_PARENTHESIS  &kp RIGHT_PARENTHESIS  &kp PERIOD  &kp N4  &kp N5  &kp N6  &kp MINUS  &kp EQUAL
@@ -75,7 +78,7 @@
         };
 
         layer_6 {
-            display-name = "Apps";
+            display-name = "User 6";
             bindings = <
 &none  &none  &none  &none  &none  &none  &kp LG(T)  &kp LG(LS(N))     &kp LG(LA(P))  &kp LG(LS(H))     &kp LC(LG(N1))     &kp LG(Q)
 &none  &none  &none  &none  &none  &none  &kp HOME   &msc MOVE_Y(-20)  &kp LG(C)      &kp LG(V)         &kp F18            &kp LG(W)
@@ -85,7 +88,7 @@
         };
 
         layer_7 {
-            display-name = "System";
+            display-name = "User 7";
             bindings = <
 &bt BT_CLR_ALL  &kp F1        &kp F2        &kp F3         &kp F4         &kp F5      &kp LG(LS(N3))  &kp LS(LG(N4))  &kp LS(LG(N5))  &trans              &trans              &kp LC(LG(Q))
 &out OUT_USB    &kp F6        &kp F7        &kp F8         &kp F9         &kp F10     &kp LA(A)       &kp LA(LG(S))   &kp LA(LG(K))   &trans              &trans              &trans
@@ -95,7 +98,7 @@
         };
 
         layer_8 {
-            display-name = "Studio Unlock";
+            display-name = "User 8";
             bindings = <
 &studio_unlock  &none  &none  &none  &none  &bootloader  &bootloader  &none  &none  &none  &none  &none
 &none  &none  &none  &none  &none  &none        &none        &none  &none  &none  &none  &none
@@ -105,15 +108,52 @@
         };
 
         layer_9 {
-            display-name = "Gesture Settings";
-            /* Editable action slots used by the gesture processors:
-             * J/L = previous/next tab, Left/Right Arrow = previous/next desktop.
-             */
+            display-name = "User 9";
             bindings = <
-&none  &none  &none  &none  &none  &none  &none  &none              &none  &none  &none  &none
-&none  &none  &none  &none  &none  &none  &none  &kp LC(LS(TAB))  &none  &kp LC(TAB)  &none  &none
-&none  &none  &none  &none  &none  &none  &none  &none              &none  &none        &none  &none  &none  &none
-&none  &none  &none  &none  &none  &none  &none  &none              &none  &kp LC(LEFT_ARROW)  &none  &kp LC(RIGHT_ARROW)
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+            >;
+        };
+
+        layer_10 {
+            display-name = "User 10";
+            bindings = <
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+            >;
+        };
+
+        layer_11 {
+            display-name = "User 11";
+            bindings = <
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+            >;
+        };
+
+        layer_12 {
+            display-name = "User 12";
+            bindings = <
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+            >;
+        };
+
+        layer_13 {
+            display-name = "User 13";
+            bindings = <
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
+&trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
             >;
         };
     };

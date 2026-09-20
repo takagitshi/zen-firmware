@@ -4,25 +4,15 @@
     /* CPI 800 yields 4/3 as many raw counts as the former CPI 600 setup.
      * Gestures run before pointer scaling, so threshold 40 preserves the
      * original physical travel. PAW3222 and trackpad keep threshold 30. */
-    pmw_gesture_1_processor: pmw_gesture_1_processor {
+    pmw_gesture_processor: pmw_gesture_processor {
         compatible = "zmk,input-processor-gesture";
         #input-processor-cells = <0>;
         layer = <3>;
-        binding-layer = <9>;
+        binding-layer = <3>;
+        up-position = <8>;
         left-position = <19>;
         right-position = <21>;
-        threshold = <40>;
-        cooldown-ms = <150>;
-        reset-on-layer = <2>;
-    };
-
-    pmw_gesture_2_processor: pmw_gesture_2_processor {
-        compatible = "zmk,input-processor-gesture";
-        #input-processor-cells = <0>;
-        layer = <4>;
-        binding-layer = <9>;
-        left-position = <47>;
-        right-position = <49>;
+        down-position = <34>;
         threshold = <40>;
         cooldown-ms = <150>;
         reset-on-layer = <2>;
@@ -78,8 +68,7 @@
         status = "okay";
         input-processors =
             <&zip_xy_transform (INPUT_TRANSFORM_XY_SWAP | INPUT_TRANSFORM_X_INVERT | INPUT_TRANSFORM_Y_INVERT)>,
-            <&pmw_gesture_2_processor>,
-            <&pmw_gesture_1_processor>,
+            <&pmw_gesture_processor>,
             <&zip_temp_layer 1 500>;
 
         scroller {
@@ -99,8 +88,7 @@
         status = "okay";
         input-processors =
             <&zip_xy_transform (INPUT_TRANSFORM_X_INVERT | INPUT_TRANSFORM_Y_INVERT)>,
-            <&gesture_2_processor>,
-            <&gesture_1_processor>,
+            <&gesture_processor>,
             <&zip_temp_layer 1 500>;
 
         scroller {
@@ -119,8 +107,7 @@
         status = "okay";
         input-processors =
             <&zip_xy_transform (INPUT_TRANSFORM_X_INVERT | INPUT_TRANSFORM_Y_INVERT)>,
-            <&gesture_2_processor>,
-            <&gesture_1_processor>,
+            <&gesture_processor>,
             <&zip_temp_layer 1 500>;
 
         scroller {

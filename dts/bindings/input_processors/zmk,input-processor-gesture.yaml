@@ -33,6 +33,11 @@ properties:
     required: true
     description: Keymap layer containing the editable gesture action slots
 
+  up-position:
+    type: int
+    required: true
+    description: Key position to invoke for an up gesture
+
   left-position:
     type: int
     required: true
@@ -42,3 +47,8 @@ properties:
     type: int
     required: true
     description: Key position to invoke for a right gesture
+
+  down-position:
+    type: int
+    required: true
+    description: Key position to invoke for a down gesture

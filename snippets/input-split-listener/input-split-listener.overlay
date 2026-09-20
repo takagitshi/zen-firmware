@@ -17,7 +17,6 @@
         status = "okay";
         input-processors =
             <&zip_xy_scaler 1 56>,
-            <&gesture_2_processor>,
-            <&gesture_1_processor>;
+            <&gesture_processor>;
      };
 };

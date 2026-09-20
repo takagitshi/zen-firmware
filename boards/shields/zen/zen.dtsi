@@ -71,29 +71,17 @@
         track-remainders;
     };
 
-    gesture_1_processor: gesture_1_processor {
+    gesture_processor: gesture_processor {
         compatible = "zmk,input-processor-gesture";
         #input-processor-cells = <0>;
         status = "disabled";
         layer = <3>;
-        /* Gesture Settings layer: J = previous tab, L = next tab. */
-        binding-layer = <9>;
+        /* Layer 3 slots: I = up, J = left, L = right, comma = down. */
+        binding-layer = <3>;
+        up-position = <8>;
         left-position = <19>;
         right-position = <21>;
-        threshold = <30>;
-        cooldown-ms = <150>;
-        reset-on-layer = <2>;
-    };
-
-    gesture_2_processor: gesture_2_processor {
-        compatible = "zmk,input-processor-gesture";
-        #input-processor-cells = <0>;
-        status = "disabled";
-        layer = <4>;
-        /* Gesture Settings layer: Left/Right Arrow = previous/next desktop. */
-        binding-layer = <9>;
-        left-position = <47>;
-        right-position = <49>;
+        down-position = <34>;
         threshold = <30>;
         cooldown-ms = <150>;
         reset-on-layer = <2>;

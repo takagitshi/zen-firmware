@@ -159,6 +159,39 @@ def verify_sources(repo: Path) -> None:
     keymap_text = read_text(keymap)
     for mouse_button in ("MB1", "MB2", "MB3"):
         require(keymap_text, f"&mkp {mouse_button}", keymap)
+    layer_ids = [int(value) for value in re.findall(r"^\s*layer_(\d+)\s*\{", keymap_text, re.MULTILINE)]
+    if layer_ids != list(range(14)):
+        fail(f"{keymap}: expected layers 0 through 13, found {layer_ids}")
+    gesture_layer = re.search(r"^\s*layer_3\s*\{(?P<body>.*?)^\s*\};", keymap_text, re.MULTILINE | re.DOTALL)
+    if gesture_layer is None:
+        fail(f"{keymap}: missing gesture layer 3")
+    gesture_bindings = re.findall(r"&none|&kp\s+LC\([A-Z_]+\)", gesture_layer.group("body"))
+    if len(gesture_bindings) != 50:
+        fail(f"{keymap}: expected 50 gesture layer bindings, found {len(gesture_bindings)}")
+    expected_gesture_bindings = {
+        8: "&kp LC(DOWN_ARROW)",
+        19: "&kp LC(RIGHT_ARROW)",
+        21: "&kp LC(LEFT_ARROW)",
+        34: "&kp LC(UP_ARROW)",
+    }
+    for position, binding in enumerate(gesture_bindings):
+        expected = expected_gesture_bindings.get(position, "&none")
+        if binding != expected:
+            fail(f"{keymap}: gesture position {position} is {binding!r}, expected {expected!r}")
+    for setting in (
+        'display-name = "Base";',
+        'display-name = "Mouse";',
+        'display-name = "Scroll";',
+        'display-name = "Gesture";',
+        "&lt 8 TILDE",
+        "&lt 2 SEMICOLON",
+        "&lt 4 N",
+        "&lt 3 M",
+        "&lt 5 SPACE",
+        "&lt 6 ENTER",
+        "&mo 7",
+    ):
+        require(keymap_text, setting, keymap)
 
     pmw_overlay = repo / "snippets/input-trackball-pmw3610/input-trackball-pmw3610.overlay"
     pmw_overlay_text = read_text(pmw_overlay)
@@ -180,8 +213,7 @@ def verify_sources(repo: Path) -> None:
         "scale-divisor = <1>;",
         "&scroll_runtime_input_processor {",
         "scale-divisor = <40>;",
-        "<&pmw_gesture_2_processor>,",
-        "<&pmw_gesture_1_processor>,",
+        "<&pmw_gesture_processor>,",
         "<&zip_temp_layer 1 10000>,",
         "<&mouse_runtime_input_processor>;",
         "<&scroll_runtime_input_processor>;",
@@ -192,21 +224,30 @@ def verify_sources(repo: Path) -> None:
     reject(dya_overlay_text, "temp-layer-enabled;", dya_overlay)
 
     base_dtsi = repo / "boards/shields/zen/zen.dtsi"
-    if read_text(base_dtsi).count("threshold = <30>;") != 2:
-        fail(f"{base_dtsi}: shared left-side gesture thresholds must remain 30")
+    base_dtsi_text = read_text(base_dtsi)
+    if base_dtsi_text.count("threshold = <30>;") != 1:
+        fail(f"{base_dtsi}: the shared gesture threshold must remain 30")
+    for setting in (
+        "gesture_processor: gesture_processor {",
+        "layer = <3>;",
+        "binding-layer = <3>;",
+        "up-position = <8>;",
+        "left-position = <19>;",
+        "right-position = <21>;",
+        "down-position = <34>;",
+    ):
+        require(base_dtsi_text, setting, base_dtsi)
     left_listeners = repo / "snippets/input-split-listener-left-all/input-split-listener-left-all.overlay"
     left_text = read_text(left_listeners)
     for setting in (
-        "pmw_gesture_1_processor: pmw_gesture_1_processor {",
-        "pmw_gesture_2_processor: pmw_gesture_2_processor {",
-        "<&pmw_gesture_2_processor>,",
-        "<&pmw_gesture_1_processor>,",
+        "pmw_gesture_processor: pmw_gesture_processor {",
+        "<&pmw_gesture_processor>,",
         "<&left_pmw3610_scroll_scaler 3 80>;",
     ):
         require(left_text, setting, left_listeners)
-    if left_text.count("threshold = <40>;") != 2:
-        fail(f"{left_listeners}: both PMW gesture thresholds must be 40")
-    if left_text.count("<&gesture_2_processor>,") != 2 or left_text.count("<&gesture_1_processor>,") != 2:
+    if left_text.count("threshold = <40>;") != 1:
+        fail(f"{left_listeners}: the PMW gesture threshold must be 40")
+    if left_text.count("<&gesture_processor>,") != 2:
         fail(f"{left_listeners}: PAW3222 and trackpad must keep the shared threshold-30 gestures")
     reject(left_text, "<&left_pmw3610_scroll_scaler 1 20>;", left_listeners)
 
@@ -255,12 +296,17 @@ def verify_build(build_dir: Path) -> None:
         'processor-label = "mouse";',
         'processor-label = "scroll";',
         "scale-divisor = < 0x28 >;",
-        "pmw_gesture_1_processor: pmw_gesture_1_processor",
-        "pmw_gesture_2_processor: pmw_gesture_2_processor",
+        "pmw_gesture_processor: pmw_gesture_processor",
+        "gesture_processor: gesture_processor",
         "threshold = < 0x1e >;",
         "threshold = < 0x28 >;",
-        "< &pmw_gesture_2_processor >, < &pmw_gesture_1_processor >, < &zip_temp_layer 0x1 0x2710 >, < &mouse_runtime_input_processor >;",
-        "< &pmw_gesture_2_processor >, < &pmw_gesture_1_processor >, < &zip_temp_layer 0x1 0x1f4 >;",
+        "binding-layer = < 0x3 >;",
+        "up-position = < 0x8 >;",
+        "left-position = < 0x13 >;",
+        "right-position = < 0x15 >;",
+        "down-position = < 0x22 >;",
+        "< &pmw_gesture_processor >, < &zip_temp_layer 0x1 0x2710 >, < &mouse_runtime_input_processor >;",
+        "< &pmw_gesture_processor >, < &zip_temp_layer 0x1 0x1f4 >;",
         "< &zip_xy_to_scroll_mapper >, < &scroll_runtime_input_processor >;",
         "< &zip_xy_scaler 0x1 0x38 >, < &zip_xy_transform 0x3 >, < &zip_xy_to_scroll_mapper >, < &left_pmw3610_scroll_scaler 0x3 0x50 >;",
     ):

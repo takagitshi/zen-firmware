@@ -30,6 +30,9 @@ int main(void) {
     assert(update(&state, ZEN_GESTURE_AXIS_X, -30, true, 1000) == ZEN_GESTURE_LEFT);
 
     zen_gesture_state_reset(&state);
+    assert(update(&state, ZEN_GESTURE_AXIS_Y, 30, true, 1000) == ZEN_GESTURE_DOWN);
+
+    zen_gesture_state_reset(&state);
     assert(update(&state, ZEN_GESTURE_AXIS_X, 15, false, 1000) == ZEN_GESTURE_NONE);
     assert(update(&state, ZEN_GESTURE_AXIS_Y, 15, true, 1000) == ZEN_GESTURE_RIGHT);
 

@@ -16,8 +16,7 @@
 &pointing_listener {
     input-processors =
         <&zip_xy_transform (INPUT_TRANSFORM_XY_SWAP)>,
-        <&pmw_gesture_2_processor>,
-        <&pmw_gesture_1_processor>,
+        <&pmw_gesture_processor>,
         <&zip_temp_layer 1 10000>,
         <&mouse_runtime_input_processor>;
 
