@@ -119,7 +119,6 @@ def verify_sources(repo: Path) -> None:
     right_text = read_text(right_overlay)
     for expected in (
         "require-prior-idle-ms = <300>;",
-        "excluded-positions = <19 20 21 24 38 39 41 42>;",
         "<&zip_temp_layer 1 10000>;",
     ):
         require(right_text, expected, right_overlay)
@@ -153,6 +152,7 @@ def verify_sources(repo: Path) -> None:
         7: "setting",
         8: "User 8",
     }
+    layers = {}
     for layer_id, display_name in expected_layer_names.items():
         layer = re.search(
             rf"^\s*layer_{layer_id}\s*\{{(?P<body>.*?)^\s*\}};",
@@ -161,7 +161,31 @@ def verify_sources(repo: Path) -> None:
         )
         if layer is None:
             fail(f"{keymap}: missing layer {layer_id}")
-        require(layer.group("body"), f'display-name = "{display_name}";', keymap)
+        layers[layer_id] = layer.group("body")
+        require(layers[layer_id], f'display-name = "{display_name}";', keymap)
+
+    mouse_bindings = re.search(
+        r"bindings\s*=\s*<(?P<body>.*?)>;", layers[1], re.DOTALL
+    )
+    if mouse_bindings is None:
+        fail(f"{keymap}: Mouse layer bindings are missing")
+    mouse_behaviors = re.findall(r"&([A-Za-z0-9_]+)\b", mouse_bindings.group("body"))
+    configured_mouse_positions = [
+        position
+        for position, behavior in enumerate(mouse_behaviors)
+        if behavior not in {"trans", "none"}
+    ]
+    excluded_match = re.search(
+        r"excluded-positions\s*=\s*<(?P<body>[^>]*)>;", right_text
+    )
+    if excluded_match is None:
+        fail(f"{right_overlay}: excluded-positions is missing")
+    excluded_positions = [int(value) for value in excluded_match.group("body").split()]
+    if excluded_positions != configured_mouse_positions:
+        fail(
+            f"{right_overlay}: excluded positions {excluded_positions} do not match "
+            f"configured Mouse layer positions {configured_mouse_positions}"
+        )
 
     base_dtsi = repo / "boards/shields/zen/zen.dtsi"
     base_text = read_text(base_dtsi)
@@ -223,7 +247,7 @@ def verify_build(build_dir: Path) -> None:
         'compatible = "pixart,pmw3610-alt";',
         "cpi = < 0x320 >;",
         "require-prior-idle-ms = < 0x12c >;",
-        "excluded-positions = < 0x13 0x14 0x15 0x18 0x26 0x27 0x29 0x2a >;",
+        "excluded-positions = < 0x13 0x14 0x15 0x18 0x26 0x27 0x29 >;",
         "< &pmw3610_scroll_scaler 0x1 0x28 >;",
         "< &pmw_gesture_processor >, < &zip_temp_layer 0x1 0x2710 >;",
         "< &zip_xy_scaler 0x1 0x38 >, < &zip_xy_transform 0x3 >, < &zip_xy_to_scroll_mapper >, < &left_pmw3610_scroll_scaler 0x3 0x50 >;",
