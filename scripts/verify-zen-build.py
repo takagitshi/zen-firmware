@@ -133,8 +133,23 @@ def verify_sources(repo: Path) -> None:
 
     keymap = repo / "config/keymap.keymap"
     keymap_text = read_text(keymap)
-    for mouse_button in ("MB1", "MB2", "MB3"):
-        require(keymap_text, f"&mkp {mouse_button}", keymap)
+    mouse_lt = re.search(
+        r"^\s*mouse_lt:\s*mouse_layer_tap\s*\{(?P<body>.*?)^\s*\};",
+        keymap_text,
+        re.MULTILINE | re.DOTALL,
+    )
+    if mouse_lt is None:
+        fail(f"{keymap}: Mouse Layer-Tap behavior is missing")
+    mouse_lt_body = " ".join(mouse_lt.group("body").split())
+    for expected in (
+        'compatible = "zmk,behavior-hold-tap";',
+        "#binding-cells = <2>;",
+        'flavor = "tap-preferred";',
+        "tapping-term-ms = <300>;",
+        "bindings = <&mo>, <&mkp>;",
+        'display-name = "Mouse Layer-Tap";',
+    ):
+        require(mouse_lt_body, expected, keymap)
     layer_ids = [
         int(value)
         for value in re.findall(r"^\s*layer_(\d+)\s*\{", keymap_text, re.MULTILINE)
@@ -169,7 +184,14 @@ def verify_sources(repo: Path) -> None:
     )
     if mouse_bindings is None:
         fail(f"{keymap}: Mouse layer bindings are missing")
-    mouse_behaviors = re.findall(r"&([A-Za-z0-9_]+)\b", mouse_bindings.group("body"))
+    mouse_binding_text = mouse_bindings.group("body")
+    for mouse_button in ("MB1", "MB2", "MB3"):
+        if re.search(
+            rf"&(?:mkp\s+{mouse_button}|mouse_lt\s+\d+\s+{mouse_button})\b",
+            mouse_binding_text,
+        ) is None:
+            fail(f"{keymap}: Mouse layer is missing {mouse_button}")
+    mouse_behaviors = re.findall(r"&([A-Za-z0-9_]+)\b", mouse_binding_text)
     configured_mouse_positions = [
         position
         for position, behavior in enumerate(mouse_behaviors)
