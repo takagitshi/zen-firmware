@@ -78,8 +78,8 @@ def pointer_acceleration_settings(repo: Path) -> tuple[dict[str, int], bool]:
         fail(f"{overlay}: expected 0 <= takeoff-speed < full-speed <= 65535")
     if not 500 <= base <= 1000:
         fail(f"{overlay}: base-gain-milli must be in [500, 1000]")
-    if not base <= maximum <= 2000:
-        fail(f"{overlay}: max-gain-milli must be between base and 2000")
+    if not base <= maximum <= 4000:
+        fail(f"{overlay}: max-gain-milli must be between base and 4000")
     if not 0 < reference < idle <= 65535:
         fail(f"{overlay}: expected 0 < reference-interval-ms < idle-reset-ms <= 65535")
     if settings["zen-pointer-acceleration-scroll-layer"] != 2:

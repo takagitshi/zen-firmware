@@ -64,7 +64,7 @@ GitHub Actionsで作成される `firmware` というzipファイルには、以
 
 標準の右PMW3610構成には、macOS側のポインター加速をOFFにして使うことを想定した
 ファームウェア側加速があります。センサーは800 CPIのまま、低速出力を0.75倍
-（600 CPI相当）にし、中速から最大1.5倍へ穏やかに近づけます。X/Yベクトル速度から
+（600 CPI相当）にし、中速から最大3.0倍へ穏やかに近づけます。X/Yベクトル速度から
 同じフレームの共通倍率を求めるため、方向比を崩さず、高速フレームの倍率が次の低速
 フレームへ残りません。短い処理間隔を高速移動と誤認しないよう、15ms未満の間隔では
 速度を水増ししません。
@@ -87,12 +87,12 @@ Scrollレイヤー2とGestureレイヤー3では加速を迂回し、従来のra
 | `zen-pointer-acceleration-base-gain-milli` | 750 | 低速域0.75倍（600 CPI相当） |
 | `zen-pointer-acceleration-takeoff-speed` | 32 | この正規化ベクトル速度以下は低速倍率 |
 | `zen-pointer-acceleration-full-speed` | 160 | 出力速度の傾きが最大gainへ到達する速度 |
-| `zen-pointer-acceleration-max-gain-milli` | 1500 | 出力速度の傾きと倍率の上限1.5倍 |
+| `zen-pointer-acceleration-max-gain-milli` | 3000 | 出力速度の傾きと倍率の上限3.0倍 |
 | `zen-pointer-acceleration-reference-interval-ms` | 15 | 速度判定の基準レポート間隔 |
 | `zen-pointer-acceleration-idle-reset-ms` | 60 | 端数を破棄する無操作時間 |
 
-`full-speed` では倍率が急に1.5倍になるわけではありません。初期値では倍率は速度160で
-約1.05倍、320で約1.275倍となり、その後も連続的に1.5倍へ近づきます。まず速度感だけを
+`full-speed` では倍率が急に3.0倍になるわけではありません。初期値では倍率は速度160で
+約1.65倍、320で約2.325倍となり、その後も連続的に3.0倍へ近づきます。まず速度感だけを
 変える場合は `base-gain-milli`、`takeoff-speed`、`full-speed`、`max-gain-milli` の順に
 一項目ずつ調整してください。
 

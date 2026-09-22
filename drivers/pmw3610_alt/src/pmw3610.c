@@ -919,8 +919,8 @@ static const struct sensor_driver_api pmw3610_driver_api = {
     BUILD_ASSERT(DT_PROP(DT_DRV_INST(n), zen_pointer_acceleration_max_gain_milli) >=               \
                      DT_PROP(DT_DRV_INST(n), zen_pointer_acceleration_base_gain_milli),            \
                  "Pointer acceleration maximum gain must exceed the base gain");                 \
-    BUILD_ASSERT(DT_PROP(DT_DRV_INST(n), zen_pointer_acceleration_max_gain_milli) <= 2000,         \
-                 "Pointer acceleration maximum gain must not exceed 2.0x");                      \
+    BUILD_ASSERT(DT_PROP(DT_DRV_INST(n), zen_pointer_acceleration_max_gain_milli) <= 4000,         \
+                 "Pointer acceleration maximum gain must not exceed 4.0x");                      \
     BUILD_ASSERT(DT_PROP(DT_DRV_INST(n), zen_pointer_acceleration_reference_interval_ms) > 0,     \
                  "Pointer acceleration reference interval must be positive");                   \
     BUILD_ASSERT(DT_PROP(DT_DRV_INST(n), zen_pointer_acceleration_reference_interval_ms) <=       \

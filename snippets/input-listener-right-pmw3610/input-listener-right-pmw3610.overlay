@@ -20,7 +20,7 @@
     zen-pointer-acceleration-base-gain-milli = <750>;
     zen-pointer-acceleration-takeoff-speed = <32>;
     zen-pointer-acceleration-full-speed = <160>;
-    zen-pointer-acceleration-max-gain-milli = <1500>;
+    zen-pointer-acceleration-max-gain-milli = <3000>;
     zen-pointer-acceleration-reference-interval-ms = <15>;
     zen-pointer-acceleration-idle-reset-ms = <60>;
     zen-pointer-acceleration-scroll-layer = <2>;
