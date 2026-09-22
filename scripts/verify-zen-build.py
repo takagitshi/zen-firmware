@@ -291,7 +291,7 @@ def verify_sources(repo: Path) -> None:
     left_text = read_text(left_listeners)
     for expected in (
         "pmw_gesture_processor: pmw_gesture_processor {",
-        "threshold = <300>;",
+        "threshold = <200>;",
         "<&left_pmw3610_scroll_scaler 3 80>;",
     ):
         require(left_text, expected, left_listeners)

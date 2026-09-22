@@ -99,7 +99,7 @@ Scrollレイヤー2とGestureレイヤー3では加速を迂回し、従来のra
 元のリニアなPointer 1.0xへ戻す場合は、
 `snippets/input-listener-right-pmw3610/input-listener-right-pmw3610.conf` の
 `CONFIG_ZEN_POINTER_ACCELERATION=y` を `n` に変更します。ScrollはCPI増加を相殺する
-1/60（旧800 CPI・1/40と同じ物理感度）です。PMW3610 Gestureのしきい値は300、
+1/60（旧800 CPI・1/40と同じ物理感度）です。PMW3610 Gestureのしきい値は200、
 AMLとレポート周期は従来どおりです。
 
 ## うまく接続できない場合

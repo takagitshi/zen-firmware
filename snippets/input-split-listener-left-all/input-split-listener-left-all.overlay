@@ -2,8 +2,8 @@
 
 / {
     /* PMW3610 gestures use raw motion before pointer scaling. At CPI 1200,
-     * threshold 300 requires five times the physical travel of the old 800/40
-     * setting for deliberate-only activation. PAW3222/trackpad stay at 30. */
+     * threshold 200 requires about 3.3 times the physical travel of the old
+     * 800/40 setting. PAW3222/trackpad stay at 30. */
     pmw_gesture_processor: pmw_gesture_processor {
         compatible = "zmk,input-processor-gesture";
         #input-processor-cells = <0>;
@@ -13,7 +13,7 @@
         left-position = <19>;
         right-position = <21>;
         down-position = <34>;
-        threshold = <300>;
+        threshold = <200>;
         cooldown-ms = <150>;
         reset-on-layer = <2>;
     };
