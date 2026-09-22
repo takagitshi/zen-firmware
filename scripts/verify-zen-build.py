@@ -153,7 +153,7 @@ def verify_sources(repo: Path) -> None:
     pmw_text = read_text(pmw_overlay)
     for expected in (
         'compatible = "pixart,pmw3610-alt";',
-        "cpi = <800>;",
+        "cpi = <1200>;",
         "force-awake;",
     ):
         require(pmw_text, expected, pmw_overlay)
@@ -165,7 +165,7 @@ def verify_sources(repo: Path) -> None:
         "&pointing_device {",
         "zen-pointer-acceleration;",
         "<&pmw_gesture_processor>,\n        <&zip_temp_layer 1 10000>;",
-        "<&pmw3610_scroll_scaler 1 40>;",
+        "<&pmw3610_scroll_scaler 1 60>;",
     ):
         require(right_pmw_text, expected, right_pmw_listener)
     pointer_acceleration_settings(repo)
@@ -291,7 +291,7 @@ def verify_sources(repo: Path) -> None:
     left_text = read_text(left_listeners)
     for expected in (
         "pmw_gesture_processor: pmw_gesture_processor {",
-        "threshold = <40>;",
+        "threshold = <120>;",
         "<&left_pmw3610_scroll_scaler 3 80>;",
     ):
         require(left_text, expected, left_listeners)
@@ -342,10 +342,10 @@ def verify_build(build_dir: Path, repo: Path) -> None:
     dts_text = " ".join(read_text(dts).split())
     for expected in (
         'compatible = "pixart,pmw3610-alt";',
-        "cpi = < 0x320 >;",
+        "cpi = < 0x4b0 >;",
         "require-prior-idle-ms = < 0x12c >;",
         "excluded-positions = < 0x13 0x14 0x15 0x18 0x26 0x27 0x29 >;",
-        "< &pmw3610_scroll_scaler 0x1 0x28 >;",
+        "< &pmw3610_scroll_scaler 0x1 0x3c >;",
         *(f"{name} = < 0x{value:x} >;" for name, value in acceleration.items()),
         "zen-pointer-acceleration;",
         "< &pmw_gesture_processor >, < &zip_temp_layer 0x1 0x2710 >;",

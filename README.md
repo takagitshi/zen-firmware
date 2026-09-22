@@ -63,8 +63,8 @@ GitHub Actionsで作成される `firmware` というzipファイルには、以
 ## PMW3610ポインター加速
 
 標準の右PMW3610構成には、macOS側のポインター加速をOFFにして使うことを想定した
-ファームウェア側加速があります。センサーは800 CPIのまま、低速出力を0.75倍
-（600 CPI相当）にし、中速から最大3.0倍へ穏やかに近づけます。X/Yベクトル速度から
+ファームウェア側加速があります。センサーは1200 CPI、低速出力は0.5倍
+（600 CPI相当）とし、中速から最大3.0倍へ穏やかに近づけます。X/Yベクトル速度から
 同じフレームの共通倍率を求めるため、方向比を崩さず、高速フレームの倍率が次の低速
 フレームへ残りません。短い処理間隔を高速移動と誤認しないよう、15ms未満の間隔では
 速度を水増ししません。
@@ -84,7 +84,7 @@ Scrollレイヤー2とGestureレイヤー3では加速を迂回し、従来のra
 
 | 項目 | 初期値 | 意味 |
 | --- | ---: | --- |
-| `zen-pointer-acceleration-base-gain-milli` | 750 | 低速域0.75倍（600 CPI相当） |
+| `zen-pointer-acceleration-base-gain-milli` | 500 | 低速域0.5倍（600 CPI相当） |
 | `zen-pointer-acceleration-takeoff-speed` | 32 | この正規化ベクトル速度以下は低速倍率 |
 | `zen-pointer-acceleration-full-speed` | 160 | 出力速度の傾きが最大gainへ到達する速度 |
 | `zen-pointer-acceleration-max-gain-milli` | 3000 | 出力速度の傾きと倍率の上限3.0倍 |
@@ -92,14 +92,15 @@ Scrollレイヤー2とGestureレイヤー3では加速を迂回し、従来のra
 | `zen-pointer-acceleration-idle-reset-ms` | 60 | 端数を破棄する無操作時間 |
 
 `full-speed` では倍率が急に3.0倍になるわけではありません。初期値では倍率は速度160で
-約1.65倍、320で約2.325倍となり、その後も連続的に3.0倍へ近づきます。まず速度感だけを
+約1.5倍、320で約2.25倍となり、その後も連続的に3.0倍へ近づきます。まず速度感だけを
 変える場合は `base-gain-milli`、`takeoff-speed`、`full-speed`、`max-gain-milli` の順に
 一項目ずつ調整してください。
 
 元のリニアなPointer 1.0xへ戻す場合は、
 `snippets/input-listener-right-pmw3610/input-listener-right-pmw3610.conf` の
-`CONFIG_ZEN_POINTER_ACCELERATION=y` を `n` に変更します。CPI 800、Scroll 1/40、
-Gesture、AML、レポート周期はこの設定の対象外です。
+`CONFIG_ZEN_POINTER_ACCELERATION=y` を `n` に変更します。ScrollはCPI増加を相殺する
+1/60（旧800 CPI・1/40と同じ物理感度）です。PMW3610 Gestureのしきい値は120、
+AMLとレポート周期は従来どおりです。
 
 ## うまく接続できない場合
 

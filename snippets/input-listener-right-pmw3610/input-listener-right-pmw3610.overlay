@@ -12,12 +12,12 @@
 
 /*
  * Apply a continuous same-frame gain curve at the PMW3610 15 ms aggregation
- * point. Low speed is 0.75x (600-CPI-equivalent at raw 800 CPI). Scroll and
+ * point. Low speed is 0.5x (600-CPI-equivalent at raw 1200 CPI). Scroll and
  * Gesture receive bit-exact raw deltas by bypassing acceleration on layers 2/3.
  */
 &pointing_device {
     zen-pointer-acceleration;
-    zen-pointer-acceleration-base-gain-milli = <750>;
+    zen-pointer-acceleration-base-gain-milli = <500>;
     zen-pointer-acceleration-takeoff-speed = <32>;
     zen-pointer-acceleration-full-speed = <160>;
     zen-pointer-acceleration-max-gain-milli = <3000>;
@@ -38,7 +38,7 @@
         input-processors =
             <&zip_xy_transform (INPUT_TRANSFORM_XY_SWAP | INPUT_TRANSFORM_Y_INVERT)>,
             <&zip_xy_to_scroll_mapper>,
-            <&pmw3610_scroll_scaler 1 40>;
+            <&pmw3610_scroll_scaler 1 60>;
         process-next;
     };
 };
