@@ -63,32 +63,38 @@ GitHub Actionsで作成される `firmware` というzipファイルには、以
 ## PMW3610ポインター加速
 
 標準の右PMW3610構成には、macOS側のポインター加速をOFFにして使うことを想定した
-ファームウェア側加速があります。低速は完全な1.0倍、中速からsmoothstepで滑らかに
-立ち上がり、112 counts/15ms以上で2.0倍を上限とします。X/Yには同じ倍率を適用し、
-加速分の端数を保持します。完了したX/Yベクトルから次のレポートの倍率を決めるため、
-最大15msの応答遅延と引き換えに、元のPMW3610 device、input queue、sync、15ms周期を
-そのまま維持します。倍率だけを上昇50%・下降75%で平滑化し、低速域または60msの
-無操作後は次のレポートを即座に1.0倍へ戻します。X/Y座標自体は平均しません。
+ファームウェア側加速があります。センサーは800 CPIのまま、低速出力を0.75倍
+（600 CPI相当）にし、中速から最大1.5倍へ穏やかに近づけます。X/Yベクトル速度から
+同じフレームの共通倍率を求めるため、方向比を崩さず、高速フレームの倍率が次の低速
+フレームへ残りません。短い処理間隔を高速移動と誤認しないよう、15ms未満の間隔では
+速度を水増ししません。
+
+カーブは倍率そのものではなく、出力速度の傾き（gain）が連続になるように構成して
+います。これにより、カーブ途中で実効的な加速が設定上限を超える現象を防ぎます。
+座標の移動平均や時間方向の倍率平滑化は行わず、入力遅延や高速から低速へ戻した際の
+追従遅れを加えません。X/Yそれぞれの100万分率の端数は保持し、方向反転または60msの
+無操作で破棄します。送信待ちで複数周期分が蓄積した場合だけ実収集時間で速度を補正し、
+無操作時間そのものは次の高速操作を遅く判定しません。既存のPMW3610 device、input
+queue、sync、15ms周期は維持します。
+Scrollレイヤー2とGestureレイヤー3では加速を迂回し、従来のraw deltaを使います。
 
 調整値は
 `snippets/input-listener-right-pmw3610/input-listener-right-pmw3610.overlay` の
-`pointer_acceleration` に集約しています。
+`&pointing_device` の `zen-pointer-acceleration-*` に集約しています。
 
 | 項目 | 初期値 | 意味 |
 | --- | ---: | --- |
-| `base-multiplier-milli` | 1000 | 低速域の倍率1.0倍 |
-| `takeoff-speed` | 20 | この正規化ベクトル速度以下は低速倍率 |
-| `full-speed` | 112 | この速度以上で最大倍率 |
-| `max-multiplier-milli` | 2000 | 最大2.0倍 |
-| `attack-smoothing-milli` | 500 | 倍率上昇時に差分の50%を反映 |
-| `release-smoothing-milli` | 750 | 倍率下降時に差分の75%を反映 |
-| `reference-interval-ms` | 15 | 速度判定の基準レポート間隔 |
-| `idle-reset-ms` | 60 | 低速倍率へ戻す無操作時間 |
+| `zen-pointer-acceleration-base-gain-milli` | 750 | 低速域0.75倍（600 CPI相当） |
+| `zen-pointer-acceleration-takeoff-speed` | 32 | この正規化ベクトル速度以下は低速倍率 |
+| `zen-pointer-acceleration-full-speed` | 160 | 出力速度の傾きが最大gainへ到達する速度 |
+| `zen-pointer-acceleration-max-gain-milli` | 1500 | 出力速度の傾きと倍率の上限1.5倍 |
+| `zen-pointer-acceleration-reference-interval-ms` | 15 | 速度判定の基準レポート間隔 |
+| `zen-pointer-acceleration-idle-reset-ms` | 60 | 端数を破棄する無操作時間 |
 
-低速感度だけを600 CPI相当に下げて比較する場合は、センサーのCPI 800を保持したまま
-`base-multiplier-milli`を`750`にします。センサー自体を600 CPIへ下げるよりraw分解能を
-維持できますが、HID出力は整数のため、初期値では原因を分けて評価しやすい1.0倍を
-優先します。
+`full-speed` では倍率が急に1.5倍になるわけではありません。初期値では倍率は速度160で
+約1.05倍、320で約1.275倍となり、その後も連続的に1.5倍へ近づきます。まず速度感だけを
+変える場合は `base-gain-milli`、`takeoff-speed`、`full-speed`、`max-gain-milli` の順に
+一項目ずつ調整してください。
 
 元のリニアなPointer 1.0xへ戻す場合は、
 `snippets/input-listener-right-pmw3610/input-listener-right-pmw3610.conf` の

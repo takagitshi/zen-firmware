@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import re
+import struct
 import sys
 from pathlib import Path
 
@@ -57,27 +58,35 @@ def pointer_acceleration_settings(repo: Path) -> tuple[dict[str, int], bool]:
     settings = {
         name: value(name)
         for name in (
-            "base-multiplier-milli",
-            "takeoff-speed",
-            "full-speed",
-            "max-multiplier-milli",
-            "attack-smoothing-milli",
-            "release-smoothing-milli",
-            "reference-interval-ms",
-            "idle-reset-ms",
+            "zen-pointer-acceleration-base-gain-milli",
+            "zen-pointer-acceleration-takeoff-speed",
+            "zen-pointer-acceleration-full-speed",
+            "zen-pointer-acceleration-max-gain-milli",
+            "zen-pointer-acceleration-reference-interval-ms",
+            "zen-pointer-acceleration-idle-reset-ms",
+            "zen-pointer-acceleration-scroll-layer",
+            "zen-pointer-acceleration-gesture-layer",
         )
     }
-    if not 0 <= settings["takeoff-speed"] < settings["full-speed"] <= 65535:
+    takeoff = settings["zen-pointer-acceleration-takeoff-speed"]
+    full = settings["zen-pointer-acceleration-full-speed"]
+    base = settings["zen-pointer-acceleration-base-gain-milli"]
+    maximum = settings["zen-pointer-acceleration-max-gain-milli"]
+    reference = settings["zen-pointer-acceleration-reference-interval-ms"]
+    idle = settings["zen-pointer-acceleration-idle-reset-ms"]
+    if not 0 <= takeoff < full <= 65535:
         fail(f"{overlay}: expected 0 <= takeoff-speed < full-speed <= 65535")
-    if not 500 <= settings["base-multiplier-milli"] <= 1000:
-        fail(f"{overlay}: base-multiplier-milli must be in [500, 1000]")
-    if not settings["base-multiplier-milli"] <= settings["max-multiplier-milli"] <= 4000:
-        fail(f"{overlay}: max-multiplier-milli must be between base and 4000")
-    for name in ("attack-smoothing-milli", "release-smoothing-milli"):
-        if not 1 <= settings[name] <= 1000:
-            fail(f"{overlay}: {name} must be in [1, 1000]")
-    if not 0 < settings["reference-interval-ms"] < settings["idle-reset-ms"] <= 65535:
+    if not 500 <= base <= 1000:
+        fail(f"{overlay}: base-gain-milli must be in [500, 1000]")
+    if not base <= maximum <= 2000:
+        fail(f"{overlay}: max-gain-milli must be between base and 2000")
+    if not 0 < reference < idle <= 65535:
         fail(f"{overlay}: expected 0 < reference-interval-ms < idle-reset-ms <= 65535")
+    if settings["zen-pointer-acceleration-scroll-layer"] != 2:
+        fail(f"{overlay}: Scroll bypass must remain on layer 2")
+    if settings["zen-pointer-acceleration-gesture-layer"] != 3:
+        fail(f"{overlay}: Gesture bypass must remain on layer 3")
+    require(text, "zen-pointer-acceleration;", overlay)
 
     conf = (
         repo
@@ -152,10 +161,10 @@ def verify_sources(repo: Path) -> None:
     right_pmw_listener = repo / "snippets/input-listener-right-pmw3610/input-listener-right-pmw3610.overlay"
     right_pmw_text = read_text(right_pmw_listener)
     for expected in (
-        'compatible = "zmk,input-processor-pointer-acceleration";',
         "pmw3610_scroll_scaler: pmw3610_scroll_scaler",
-        "<&pmw_gesture_processor>,\n        <&zip_temp_layer 1 10000>,\n        <&pointer_acceleration>;",
-        "<&zip_temp_layer 1 10000>,",
+        "&pointing_device {",
+        "zen-pointer-acceleration;",
+        "<&pmw_gesture_processor>,\n        <&zip_temp_layer 1 10000>;",
         "<&pmw3610_scroll_scaler 1 40>;",
     ):
         require(right_pmw_text, expected, right_pmw_listener)
@@ -163,6 +172,8 @@ def verify_sources(repo: Path) -> None:
     for unexpected in (
         "pointer_acceleration_output_listener",
         "device = <&pointer_acceleration>;",
+        'compatible = "zmk,input-processor-pointer-acceleration";',
+        "<&pointer_acceleration>",
     ):
         reject(right_pmw_text, unexpected, right_pmw_listener)
     for unexpected in (
@@ -308,7 +319,6 @@ def verify_build(build_dir: Path, repo: Path) -> None:
     config_text = read_text(config)
     for expected in (
         "CONFIG_PMW3610_ALT=y",
-        "CONFIG_ZMK_INPUT_PROCESSOR_POINTER_ACCELERATION=y",
         "CONFIG_ZMK_STUDIO=y",
         "CONFIG_ZMK_STUDIO_RPC=y",
     ):
@@ -324,6 +334,7 @@ def verify_build(build_dir: Path, repo: Path) -> None:
         "CONFIG_ZMK_RUNTIME_INPUT_PROCESSOR=y",
         "CONFIG_ZMK_CUSTOM_SETTINGS=y",
         "CONFIG_ZMK_PMW3610_CUSTOM_SETTINGS=y",
+        "CONFIG_ZMK_INPUT_PROCESSOR_POINTER_ACCELERATION=y",
     ):
         reject(config_text, unexpected, config)
 
@@ -336,7 +347,8 @@ def verify_build(build_dir: Path, repo: Path) -> None:
         "excluded-positions = < 0x13 0x14 0x15 0x18 0x26 0x27 0x29 >;",
         "< &pmw3610_scroll_scaler 0x1 0x28 >;",
         *(f"{name} = < 0x{value:x} >;" for name, value in acceleration.items()),
-        "< &pmw_gesture_processor >, < &zip_temp_layer 0x1 0x2710 >, < &pointer_acceleration >;",
+        "zen-pointer-acceleration;",
+        "< &pmw_gesture_processor >, < &zip_temp_layer 0x1 0x2710 >;",
         "< &zip_xy_scaler 0x1 0x38 >, < &zip_xy_transform 0x3 >, < &zip_xy_to_scroll_mapper >, < &left_pmw3610_scroll_scaler 0x3 0x50 >;",
     ):
         require(dts_text, expected, dts)
@@ -344,14 +356,43 @@ def verify_build(build_dir: Path, repo: Path) -> None:
         "runtime_input_processor",
         'compatible = "cormoran,pmw3610";',
         'device = < &pointer_acceleration >;',
+        'compatible = "zmk,input-processor-pointer-acceleration";',
+        "< &pointer_acceleration >",
     ):
         reject(dts_text, unexpected, dts)
+
+
+def uf2_payload(data: bytes) -> bytes:
+    if len(data) == 0 or len(data) % 512 != 0:
+        return data
+
+    blocks: list[tuple[int, bytes]] = []
+    for offset in range(0, len(data), 512):
+        block = data[offset : offset + 512]
+        magic0, magic1, _flags, address, size = struct.unpack_from("<IIIII", block)
+        (magic_end,) = struct.unpack_from("<I", block, 508)
+        if magic0 != 0x0A324655 or magic1 != 0x9E5D5157 or magic_end != 0x0AB16F30:
+            return data
+        if size > 476:
+            fail("invalid UF2 payload size")
+        blocks.append((address, block[32 : 32 + size]))
+
+    blocks.sort(key=lambda item: item[0])
+    payload = bytearray()
+    next_address = blocks[0][0]
+    for address, block_payload in blocks:
+        if address < next_address:
+            fail("overlapping UF2 payload blocks")
+        payload.extend(b"\xff" * (address - next_address))
+        payload.extend(block_payload)
+        next_address = address + len(block_payload)
+    return bytes(payload)
 
 
 def verify_binary(path: Path) -> None:
     if not path.is_file():
         fail(f"missing firmware/ELF: {path}")
-    data = path.read_bytes()
+    data = uf2_payload(path.read_bytes()) if path.suffix.lower() == ".uf2" else path.read_bytes()
     for marker in REQUIRED_BINARY_MARKERS:
         if marker not in data:
             fail(f"{path}: required ZMK Studio subsystem is missing: {marker.decode()}")

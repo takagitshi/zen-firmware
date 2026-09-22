@@ -1,24 +1,6 @@
 #include <dt-bindings/zmk/input_transform.h>
 
 / {
-    /*
-     * A completed 15 ms vector selects the shared X/Y multiplier for the next
-     * report. Gain-only smoothing preserves the original device, queue, sync,
-     * and pacing. Layer 2 is converted first, so Scroll remains 1/40.
-     */
-    pointer_acceleration: pointer_acceleration {
-        compatible = "zmk,input-processor-pointer-acceleration";
-        #input-processor-cells = <0>;
-        base-multiplier-milli = <1000>;
-        takeoff-speed = <20>;
-        full-speed = <112>;
-        max-multiplier-milli = <2000>;
-        attack-smoothing-milli = <500>;
-        release-smoothing-milli = <750>;
-        reference-interval-ms = <15>;
-        idle-reset-ms = <60>;
-    };
-
     pmw3610_scroll_scaler: pmw3610_scroll_scaler {
         compatible = "zmk,input-processor-scaler";
         #input-processor-cells = <2>;
@@ -28,12 +10,28 @@
     };
 };
 
+/*
+ * Apply a continuous same-frame gain curve at the PMW3610 15 ms aggregation
+ * point. Low speed is 0.75x (600-CPI-equivalent at raw 800 CPI). Scroll and
+ * Gesture receive bit-exact raw deltas by bypassing acceleration on layers 2/3.
+ */
+&pointing_device {
+    zen-pointer-acceleration;
+    zen-pointer-acceleration-base-gain-milli = <750>;
+    zen-pointer-acceleration-takeoff-speed = <32>;
+    zen-pointer-acceleration-full-speed = <160>;
+    zen-pointer-acceleration-max-gain-milli = <1500>;
+    zen-pointer-acceleration-reference-interval-ms = <15>;
+    zen-pointer-acceleration-idle-reset-ms = <60>;
+    zen-pointer-acceleration-scroll-layer = <2>;
+    zen-pointer-acceleration-gesture-layer = <3>;
+};
+
 &pointing_listener {
     input-processors =
         <&zip_xy_transform (INPUT_TRANSFORM_XY_SWAP)>,
         <&pmw_gesture_processor>,
-        <&zip_temp_layer 1 10000>,
-        <&pointer_acceleration>;
+        <&zip_temp_layer 1 10000>;
 
     scroller {
         layers = <2>;

@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include <stdint.h>
 #include <limits.h>
+#include <stdint.h>
 
 #include <zen/pointer_acceleration.h>
 
@@ -31,90 +31,19 @@ static uint32_t integer_sqrt(uint64_t value) {
     return root > UINT32_MAX ? UINT32_MAX : (uint32_t)root;
 }
 
-static uint64_t magnitude_i64(int64_t value) {
-    return value < 0 ? (uint64_t)(-(value + 1)) + 1U : (uint64_t)value;
-}
+uint32_t zen_pointer_accel_vector_speed(int32_t x, int32_t y) {
+    const int64_t x64 = x;
+    const int64_t y64 = y;
+    const uint64_t abs_x = x64 < 0 ? (uint64_t)-x64 : (uint64_t)x64;
+    const uint64_t abs_y = y64 < 0 ? (uint64_t)-y64 : (uint64_t)y64;
 
-static int64_t saturating_add_i64(int64_t lhs, int64_t rhs) {
-    if (rhs > 0 && lhs > INT64_MAX - rhs) {
-        return INT64_MAX;
-    }
-    if (rhs < 0 && lhs < INT64_MIN - rhs) {
-        return INT64_MIN;
-    }
-    return lhs + rhs;
-}
-
-static int64_t saturating_multiply_i64_u16(int64_t value, uint16_t factor) {
-    if (factor == 0 || value == 0) {
-        return 0;
-    }
-    if (value > 0 && value > INT64_MAX / factor) {
-        return INT64_MAX;
-    }
-    if (value < 0 && value < INT64_MIN / factor) {
-        return INT64_MIN;
-    }
-    return value * factor;
-}
-
-uint32_t zen_pointer_accel_vector_speed(int64_t x, int64_t y) {
-    const uint64_t abs_x = magnitude_i64(x);
-    const uint64_t abs_y = magnitude_i64(y);
-    if (abs_x > UINT16_MAX || abs_y > UINT16_MAX) {
-        return UINT32_MAX;
-    }
     return integer_sqrt((abs_x * abs_x) + (abs_y * abs_y));
 }
 
-uint16_t zen_pointer_accel_multiplier(const struct zen_pointer_accel_curve *curve,
-                                      uint32_t speed) {
-    if (speed <= curve->takeoff_speed) {
-        return curve->base_multiplier_milli;
-    }
-    if (speed >= curve->full_speed) {
-        return curve->max_multiplier_milli;
-    }
-
-    const uint32_t span = curve->full_speed - curve->takeoff_speed;
-    const uint32_t offset = speed - curve->takeoff_speed;
-    const uint32_t t_milli = (offset * ZEN_POINTER_ACCEL_MULTIPLIER_ONE) / span;
-    const uint64_t smooth_milli =
-        ((uint64_t)t_milli * t_milli * (3000U - (2U * t_milli)) + 500000U) /
-        1000000U;
-    const uint32_t gain_span =
-        curve->max_multiplier_milli - curve->base_multiplier_milli;
-
-    return (uint16_t)(curve->base_multiplier_milli +
-                      ((gain_span * smooth_milli + 500U) / 1000U));
-}
-
-void zen_pointer_accel_axis_reset(struct zen_pointer_accel_axis_state *state) {
-    state->extra_milli = 0;
-}
-
-int64_t zen_pointer_accel_scale_axis(struct zen_pointer_accel_axis_state *state,
-                                     int64_t value, uint16_t multiplier_milli) {
-    if (multiplier_milli == ZEN_POINTER_ACCEL_MULTIPLIER_ONE) {
-        state->extra_milli = 0;
-        return value;
-    }
-
-    const int64_t whole = value / ZEN_POINTER_ACCEL_MULTIPLIER_ONE;
-    const int64_t fraction = value % ZEN_POINTER_ACCEL_MULTIPLIER_ONE;
-    const int64_t scaled_whole = saturating_multiply_i64_u16(whole, multiplier_milli);
-    const int64_t fraction_milli =
-        state->extra_milli + fraction * multiplier_milli;
-    const int64_t scaled_fraction =
-        fraction_milli / ZEN_POINTER_ACCEL_MULTIPLIER_ONE;
-    state->extra_milli = fraction_milli % ZEN_POINTER_ACCEL_MULTIPLIER_ONE;
-
-    return saturating_add_i64(scaled_whole, scaled_fraction);
-}
-
-static uint32_t normalize_speed(uint32_t speed, uint16_t reference_interval_ms,
-                                int64_t elapsed_ms) {
-    if (elapsed_ms <= 0) {
+uint32_t zen_pointer_accel_normalize_speed(uint32_t speed, uint16_t reference_interval_ms,
+                                           int64_t elapsed_ms) {
+    /* Never amplify speed because two callbacks happened closer than expected. */
+    if (elapsed_ms <= reference_interval_ms) {
         return speed;
     }
 
@@ -124,99 +53,115 @@ static uint32_t normalize_speed(uint32_t speed, uint16_t reference_interval_ms,
     return normalized > UINT32_MAX ? UINT32_MAX : (uint32_t)normalized;
 }
 
-static uint16_t smooth_multiplier(uint16_t current, uint16_t target,
-                                  const struct zen_pointer_accel_curve *curve) {
-    if (target <= curve->base_multiplier_milli) {
-        return curve->base_multiplier_milli;
-    }
+static uint64_t integrated_gain_contribution_milli(uint32_t gain_span,
+                                                   uint32_t transition_width,
+                                                   uint32_t offset) {
+    /*
+     * Exact fixed-point integral of smoothstep(offset / width):
+     *
+     *   gain_span * offset^3 * (2 * width - offset) / (2 * width^3)
+     *
+     * Split quotient and remainder before multiplying by gain_span so every
+     * valid devicetree value stays within uint64_t.
+     */
+    const uint64_t width = transition_width;
+    const uint64_t x = offset;
+    const uint64_t numerator = x * x * x * (2U * width - x);
+    const uint64_t denominator = 2U * width * width * width;
+    const uint64_t quotient = numerator / denominator;
+    const uint64_t remainder = numerator % denominator;
 
-    const uint16_t weight = target > current ? curve->attack_smoothing_milli
-                                             : curve->release_smoothing_milli;
-    const int32_t difference = (int32_t)target - current;
-    int32_t step = (difference * weight) / ZEN_POINTER_ACCEL_MULTIPLIER_ONE;
-    if (step == 0 && difference != 0) {
-        step = difference > 0 ? 1 : -1;
-    }
-    return (uint16_t)((int32_t)current + step);
+    return (uint64_t)gain_span * quotient +
+           ((uint64_t)gain_span * remainder + denominator / 2U) / denominator;
 }
 
-void zen_pointer_accel_reset(struct zen_pointer_accel_state *state,
-                             const struct zen_pointer_accel_curve *curve) {
-    zen_pointer_accel_axis_reset(&state->x);
-    zen_pointer_accel_axis_reset(&state->y);
-    state->frame_x = 0;
-    state->frame_y = 0;
-    state->frame_start_time_ms = 0;
+uint32_t zen_pointer_accel_multiplier(const struct zen_pointer_accel_curve *curve,
+                                      uint32_t speed) {
+    if (speed == 0 || speed <= curve->takeoff_speed) {
+        return (uint32_t)curve->base_gain_milli * 1000U;
+    }
+
+    const uint32_t gain_span = curve->max_gain_milli - curve->base_gain_milli;
+    uint64_t output_milli;
+
+    if (speed < curve->full_speed) {
+        const uint32_t transition_width = curve->full_speed - curve->takeoff_speed;
+        const uint32_t offset = speed - curve->takeoff_speed;
+
+        output_milli = (uint64_t)curve->base_gain_milli * speed +
+                       integrated_gain_contribution_milli(gain_span, transition_width,
+                                                          offset);
+    } else {
+        const uint32_t transition_width = curve->full_speed - curve->takeoff_speed;
+        const uint64_t output_at_full_milli =
+            (uint64_t)curve->base_gain_milli * curve->full_speed +
+            ((uint64_t)gain_span * transition_width) / 2U;
+        output_milli = output_at_full_milli +
+                       (uint64_t)curve->max_gain_milli * (speed - curve->full_speed);
+    }
+
+    const uint64_t multiplier = (output_milli * 1000U + speed / 2U) / speed;
+    const uint32_t maximum = (uint32_t)curve->max_gain_milli * 1000U;
+    return multiplier > maximum ? maximum : (uint32_t)multiplier;
+}
+
+static void reset_axis(struct zen_pointer_accel_axis_state *axis) {
+    axis->remainder = 0;
+}
+
+void zen_pointer_accel_reset(struct zen_pointer_accel_state *state) {
+    reset_axis(&state->x);
+    reset_axis(&state->y);
     state->last_frame_time_ms = 0;
-    state->multiplier_milli = curve->base_multiplier_milli;
-    state->frame_active = false;
     state->have_frame_time = false;
 }
 
-int64_t zen_pointer_accel_process_axis(const struct zen_pointer_accel_curve *curve,
-                                       struct zen_pointer_accel_state *state,
-                                       enum zen_pointer_accel_axis axis, int64_t value,
-                                       bool sync, int64_t now_ms) {
-    if (state->frame_active &&
-        (now_ms < state->frame_start_time_ms ||
-         now_ms - state->frame_start_time_ms >= curve->idle_reset_ms)) {
-        state->frame_x = 0;
-        state->frame_y = 0;
-        state->multiplier_milli = curve->base_multiplier_milli;
-        zen_pointer_accel_axis_reset(&state->x);
-        zen_pointer_accel_axis_reset(&state->y);
-        state->frame_active = false;
+static int32_t scale_axis(struct zen_pointer_accel_axis_state *state, int32_t value,
+                          uint32_t multiplier) {
+    if (value == 0) {
+        return 0;
     }
 
-    if (!state->frame_active) {
-        if (state->have_frame_time &&
-            (now_ms < state->last_frame_time_ms ||
-             now_ms - state->last_frame_time_ms >= curve->idle_reset_ms)) {
-            state->multiplier_milli = curve->base_multiplier_milli;
-            zen_pointer_accel_axis_reset(&state->x);
-            zen_pointer_accel_axis_reset(&state->y);
+    /* Do not let a fractional carry from the opposite direction create a bump. */
+    if ((value > 0 && state->remainder < 0) ||
+        (value < 0 && state->remainder > 0)) {
+        state->remainder = 0;
+    }
+
+    const int64_t scaled_units = (int64_t)value * multiplier + state->remainder;
+    const int64_t scaled = scaled_units / ZEN_POINTER_ACCEL_GAIN_ONE;
+    state->remainder = (int32_t)(scaled_units - scaled * ZEN_POINTER_ACCEL_GAIN_ONE);
+
+    if (scaled > INT32_MAX) {
+        state->remainder = 0;
+        return INT32_MAX;
+    }
+    if (scaled < INT32_MIN) {
+        state->remainder = 0;
+        return INT32_MIN;
+    }
+    return (int32_t)scaled;
+}
+
+void zen_pointer_accel_apply_frame(const struct zen_pointer_accel_curve *curve,
+                                   struct zen_pointer_accel_state *state, int32_t x, int32_t y,
+                                   int64_t now_ms, int64_t collection_elapsed_ms,
+                                   int32_t *out_x, int32_t *out_y) {
+    uint32_t speed = zen_pointer_accel_vector_speed(x, y);
+
+    if (state->have_frame_time) {
+        const int64_t elapsed_ms = now_ms - state->last_frame_time_ms;
+        if (elapsed_ms <= 0 || elapsed_ms >= curve->idle_reset_ms) {
+            reset_axis(&state->x);
+            reset_axis(&state->y);
         }
-        state->frame_start_time_ms = now_ms;
-        state->frame_active = true;
     }
+    speed = zen_pointer_accel_normalize_speed(
+        speed, curve->reference_interval_ms, collection_elapsed_ms);
 
-    struct zen_pointer_accel_axis_state *axis_state;
-    if (axis == ZEN_POINTER_ACCEL_AXIS_X) {
-        state->frame_x = saturating_add_i64(state->frame_x, value);
-        axis_state = &state->x;
-    } else {
-        state->frame_y = saturating_add_i64(state->frame_y, value);
-        axis_state = &state->y;
-    }
-
-    const int64_t scaled =
-        zen_pointer_accel_scale_axis(axis_state, value, state->multiplier_milli);
-
-    if (sync) {
-        const uint32_t raw_speed =
-            zen_pointer_accel_vector_speed(state->frame_x, state->frame_y);
-        uint32_t normalized_speed = raw_speed;
-        if (state->have_frame_time) {
-            const int64_t elapsed_ms = now_ms - state->last_frame_time_ms;
-            if (elapsed_ms > 0 && elapsed_ms < curve->idle_reset_ms) {
-                normalized_speed =
-                    normalize_speed(raw_speed, curve->reference_interval_ms, elapsed_ms);
-            }
-        }
-
-        const uint16_t target = zen_pointer_accel_multiplier(curve, normalized_speed);
-        state->multiplier_milli = smooth_multiplier(state->multiplier_milli, target, curve);
-        if (state->multiplier_milli == ZEN_POINTER_ACCEL_MULTIPLIER_ONE) {
-            zen_pointer_accel_axis_reset(&state->x);
-            zen_pointer_accel_axis_reset(&state->y);
-        }
-        state->frame_x = 0;
-        state->frame_y = 0;
-        state->frame_start_time_ms = 0;
-        state->last_frame_time_ms = now_ms;
-        state->have_frame_time = true;
-        state->frame_active = false;
-    }
-
-    return scaled;
+    const uint32_t multiplier = zen_pointer_accel_multiplier(curve, speed);
+    *out_x = scale_axis(&state->x, x, multiplier);
+    *out_y = scale_axis(&state->y, y, multiplier);
+    state->last_frame_time_ms = now_ms;
+    state->have_frame_time = true;
 }

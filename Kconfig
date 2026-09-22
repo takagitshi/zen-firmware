@@ -12,19 +12,6 @@ config ZMK_INPUT_PROCESSOR_GESTURE
     help
       Enable the layer-aware pointing gesture input processor.
 
-config ZMK_INPUT_PROCESSOR_POINTER_ACCELERATION
-    bool
-    default y
-    depends on DT_HAS_ZMK_INPUT_PROCESSOR_POINTER_ACCELERATION_ENABLED
-
-config ZEN_POINTER_ACCELERATION
-    bool "ZEN trackball pointer acceleration"
-    default y
-    depends on ZMK_INPUT_PROCESSOR_POINTER_ACCELERATION
-    help
-      Apply the configured smooth acceleration curve to relative pointer X/Y
-      events. Disable this option to retain the original 1.0x pointer path.
-
 menuconfig PMW3610_ALT
   bool "PMW3610 mouse optical sensor"
   select SPI
@@ -34,6 +21,13 @@ menuconfig PMW3610_ALT
       Enable PMW3610 mouse optical sensor.
 
 if PMW3610_ALT
+
+config ZEN_POINTER_ACCELERATION
+    bool "ZEN trackball pointer acceleration"
+    default y
+    help
+      Apply the configured same-frame gain curve in the PMW3610 report path.
+      Disable this option to retain the original linear 1.0x pointer path.
 
 config INPUT_PMW3610_INIT_PRIORITY
     int "PMW3610 initialization priority"
