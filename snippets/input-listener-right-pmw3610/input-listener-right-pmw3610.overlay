@@ -1,6 +1,25 @@
 #include <dt-bindings/zmk/input_transform.h>
 
 / {
+    /*
+     * Each complete 15 ms PMW3610 vector selects one shared X/Y multiplier
+     * for that report. Smoothstep keeps both curve endpoints flat.
+     * Layer 2 is converted to wheel codes first, so Scroll remains 1/40.
+     */
+    pointer_acceleration: pointer_acceleration {
+        compatible = "zmk,input-processor-pointer-acceleration";
+        #input-processor-cells = <0>;
+        takeoff-speed = <8>;
+        full-speed = <64>;
+        max-multiplier-milli = <2250>;
+    };
+
+    pointer_acceleration_output_listener: pointer_acceleration_output_listener {
+        compatible = "zmk,input-listener";
+        device = <&pointer_acceleration>;
+        status = "okay";
+    };
+
     pmw3610_scroll_scaler: pmw3610_scroll_scaler {
         compatible = "zmk,input-processor-scaler";
         #input-processor-cells = <2>;
@@ -14,7 +33,8 @@
     input-processors =
         <&zip_xy_transform (INPUT_TRANSFORM_XY_SWAP)>,
         <&pmw_gesture_processor>,
-        <&zip_temp_layer 1 10000>;
+        <&zip_temp_layer 1 10000>,
+        <&pointer_acceleration>;
 
     scroller {
         layers = <2>;

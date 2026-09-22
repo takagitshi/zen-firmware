@@ -60,6 +60,29 @@ GitHub Actionsで作成される `firmware` というzipファイルには、以
 
 このリポジトリは、PMW3610トラックボール版を標準構成とし、左右それぞれでPAW3222およびTrackpadを使用する構成にも対応しています。
 
+## PMW3610ポインター加速
+
+標準の右PMW3610構成には、macOS側のポインター加速をOFFにして使うことを想定した
+ファームウェア側加速があります。低速は完全な1.0倍、中速からsmoothstepで滑らかに
+立ち上がり、64 counts/report以上で2.25倍を上限とします。X/Yには同じ倍率を適用し、
+加速分の端数を保持します。倍率は各レポートのX/Yベクトルから決まり、低速レポートへ
+直前の高速時の倍率を持ち越しません。
+
+調整値は
+`snippets/input-listener-right-pmw3610/input-listener-right-pmw3610.overlay` の
+`pointer_acceleration` に集約しています。
+
+| 項目 | 初期値 | 意味 |
+| --- | ---: | --- |
+| `takeoff-speed` | 8 | このベクトル速度以下は完全な1.0倍 |
+| `full-speed` | 64 | この速度以上で最大倍率 |
+| `max-multiplier-milli` | 2250 | 最大2.25倍 |
+
+元のリニアなPointer 1.0xへ戻す場合は、
+`snippets/input-listener-right-pmw3610/input-listener-right-pmw3610.conf` の
+`CONFIG_ZEN_POINTER_ACCELERATION=y` を `n` に変更します。CPI 800、Scroll 1/40、
+Gesture、AML、レポート周期はこの設定の対象外です。
+
 ## うまく接続できない場合
 
 無線接続がうまくいかない場合は、以下を試してください。

@@ -41,6 +41,39 @@ def reject(text: str, unexpected: str, source: Path) -> None:
         fail(f"{source}: unexpected {unexpected!r}")
 
 
+def pointer_acceleration_settings(repo: Path) -> tuple[int, int, int, bool]:
+    overlay = (
+        repo
+        / "snippets/input-listener-right-pmw3610/input-listener-right-pmw3610.overlay"
+    )
+    text = read_text(overlay)
+
+    def value(property_name: str) -> int:
+        match = re.search(rf"{property_name}\s*=\s*<(\d+)>;", text)
+        if match is None:
+            fail(f"{overlay}: missing numeric {property_name}")
+        return int(match.group(1))
+
+    takeoff = value("takeoff-speed")
+    full = value("full-speed")
+    maximum = value("max-multiplier-milli")
+    if not 0 <= takeoff < full <= 65535:
+        fail(f"{overlay}: expected 0 <= takeoff-speed < full-speed <= 65535")
+    if not 1000 <= maximum <= 4000:
+        fail(f"{overlay}: max-multiplier-milli must be in [1000, 4000]")
+
+    conf = (
+        repo
+        / "snippets/input-listener-right-pmw3610/input-listener-right-pmw3610.conf"
+    )
+    conf_text = read_text(conf)
+    enabled_match = re.search(r"^CONFIG_ZEN_POINTER_ACCELERATION=([yn])$", conf_text, re.MULTILINE)
+    if enabled_match is None:
+        fail(f"{conf}: expected CONFIG_ZEN_POINTER_ACCELERATION=y or n")
+
+    return takeoff, full, maximum, enabled_match.group(1) == "y"
+
+
 def verify_sources(repo: Path) -> None:
     west = repo / "config/west.yml"
     west_text = read_text(west)
@@ -102,12 +135,16 @@ def verify_sources(repo: Path) -> None:
     right_pmw_listener = repo / "snippets/input-listener-right-pmw3610/input-listener-right-pmw3610.overlay"
     right_pmw_text = read_text(right_pmw_listener)
     for expected in (
+        'compatible = "zmk,input-processor-pointer-acceleration";',
+        "pointer_acceleration_output_listener: pointer_acceleration_output_listener",
+        "device = <&pointer_acceleration>;",
         "pmw3610_scroll_scaler: pmw3610_scroll_scaler",
-        "<&pmw_gesture_processor>,",
-        "<&zip_temp_layer 1 10000>;",
+        "<&pmw_gesture_processor>,\n        <&zip_temp_layer 1 10000>,\n        <&pointer_acceleration>;",
+        "<&zip_temp_layer 1 10000>,",
         "<&pmw3610_scroll_scaler 1 40>;",
     ):
         require(right_pmw_text, expected, right_pmw_listener)
+    pointer_acceleration_settings(repo)
     for unexpected in (
         "runtime_input_processor",
         "settings-id",
@@ -246,15 +283,22 @@ def verify_sources(repo: Path) -> None:
         reject(repo_text, unexpected, repo)
 
 
-def verify_build(build_dir: Path) -> None:
+def verify_build(build_dir: Path, repo: Path) -> None:
     config = build_dir / "zephyr/.config"
     config_text = read_text(config)
     for expected in (
         "CONFIG_PMW3610_ALT=y",
+        "CONFIG_ZMK_INPUT_PROCESSOR_POINTER_ACCELERATION=y",
         "CONFIG_ZMK_STUDIO=y",
         "CONFIG_ZMK_STUDIO_RPC=y",
     ):
         require(config_text, expected, config)
+
+    takeoff, full, maximum, enabled = pointer_acceleration_settings(repo)
+    if enabled:
+        require(config_text, "CONFIG_ZEN_POINTER_ACCELERATION=y", config)
+    else:
+        require(config_text, "# CONFIG_ZEN_POINTER_ACCELERATION is not set", config)
     for unexpected in (
         "CONFIG_ZMK_SETTINGS_RPC=y",
         "CONFIG_ZMK_RUNTIME_INPUT_PROCESSOR=y",
@@ -271,7 +315,11 @@ def verify_build(build_dir: Path) -> None:
         "require-prior-idle-ms = < 0x12c >;",
         "excluded-positions = < 0x13 0x14 0x15 0x18 0x26 0x27 0x29 >;",
         "< &pmw3610_scroll_scaler 0x1 0x28 >;",
-        "< &pmw_gesture_processor >, < &zip_temp_layer 0x1 0x2710 >;",
+        f"takeoff-speed = < 0x{takeoff:x} >;",
+        f"full-speed = < 0x{full:x} >;",
+        f"max-multiplier-milli = < 0x{maximum:x} >;",
+        'device = < &pointer_acceleration >;',
+        "< &pmw_gesture_processor >, < &zip_temp_layer 0x1 0x2710 >, < &pointer_acceleration >;",
         "< &zip_xy_scaler 0x1 0x38 >, < &zip_xy_transform 0x3 >, < &zip_xy_to_scroll_mapper >, < &left_pmw3610_scroll_scaler 0x3 0x50 >;",
     ):
         require(dts_text, expected, dts)
@@ -303,7 +351,7 @@ def main() -> int:
 
     verify_sources(args.repo.resolve())
     if args.build_dir:
-        verify_build(args.build_dir.resolve())
+        verify_build(args.build_dir.resolve(), args.repo.resolve())
     if args.firmware:
         verify_binary(args.firmware.resolve())
     print("ZEN build contract: PASS")

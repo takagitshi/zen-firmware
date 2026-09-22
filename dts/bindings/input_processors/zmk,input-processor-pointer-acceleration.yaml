@@ -1,0 +1,24 @@
+# Copyright (c) 2026 Takashi Imai
+# SPDX-License-Identifier: MIT
+
+description: Vector-speed pointer acceleration input processor
+
+compatible: "zmk,input-processor-pointer-acceleration"
+
+include: ip_zero_param.yaml
+
+properties:
+  takeoff-speed:
+    type: int
+    required: true
+    description: Vector counts per completed report at or below which gain is exactly 1.0x
+
+  full-speed:
+    type: int
+    required: true
+    description: Vector counts per completed report at or above which maximum gain is used
+
+  max-multiplier-milli:
+    type: int
+    required: true
+    description: Maximum pointer gain in thousandths, where 2250 means 2.25x
