@@ -2,22 +2,21 @@
 
 / {
     /*
-     * Each complete 15 ms PMW3610 vector selects one shared X/Y multiplier
-     * for that report. Smoothstep keeps both curve endpoints flat.
-     * Layer 2 is converted to wheel codes first, so Scroll remains 1/40.
+     * A completed 15 ms vector selects the shared X/Y multiplier for the next
+     * report. Gain-only smoothing preserves the original device, queue, sync,
+     * and pacing. Layer 2 is converted first, so Scroll remains 1/40.
      */
     pointer_acceleration: pointer_acceleration {
         compatible = "zmk,input-processor-pointer-acceleration";
         #input-processor-cells = <0>;
-        takeoff-speed = <8>;
-        full-speed = <64>;
-        max-multiplier-milli = <2250>;
-    };
-
-    pointer_acceleration_output_listener: pointer_acceleration_output_listener {
-        compatible = "zmk,input-listener";
-        device = <&pointer_acceleration>;
-        status = "okay";
+        base-multiplier-milli = <1000>;
+        takeoff-speed = <20>;
+        full-speed = <112>;
+        max-multiplier-milli = <2000>;
+        attack-smoothing-milli = <500>;
+        release-smoothing-milli = <750>;
+        reference-interval-ms = <15>;
+        idle-reset-ms = <60>;
     };
 
     pmw3610_scroll_scaler: pmw3610_scroll_scaler {

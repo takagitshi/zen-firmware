@@ -41,7 +41,7 @@ def reject(text: str, unexpected: str, source: Path) -> None:
         fail(f"{source}: unexpected {unexpected!r}")
 
 
-def pointer_acceleration_settings(repo: Path) -> tuple[int, int, int, bool]:
+def pointer_acceleration_settings(repo: Path) -> tuple[dict[str, int], bool]:
     overlay = (
         repo
         / "snippets/input-listener-right-pmw3610/input-listener-right-pmw3610.overlay"
@@ -54,13 +54,30 @@ def pointer_acceleration_settings(repo: Path) -> tuple[int, int, int, bool]:
             fail(f"{overlay}: missing numeric {property_name}")
         return int(match.group(1))
 
-    takeoff = value("takeoff-speed")
-    full = value("full-speed")
-    maximum = value("max-multiplier-milli")
-    if not 0 <= takeoff < full <= 65535:
+    settings = {
+        name: value(name)
+        for name in (
+            "base-multiplier-milli",
+            "takeoff-speed",
+            "full-speed",
+            "max-multiplier-milli",
+            "attack-smoothing-milli",
+            "release-smoothing-milli",
+            "reference-interval-ms",
+            "idle-reset-ms",
+        )
+    }
+    if not 0 <= settings["takeoff-speed"] < settings["full-speed"] <= 65535:
         fail(f"{overlay}: expected 0 <= takeoff-speed < full-speed <= 65535")
-    if not 1000 <= maximum <= 4000:
-        fail(f"{overlay}: max-multiplier-milli must be in [1000, 4000]")
+    if not 500 <= settings["base-multiplier-milli"] <= 1000:
+        fail(f"{overlay}: base-multiplier-milli must be in [500, 1000]")
+    if not settings["base-multiplier-milli"] <= settings["max-multiplier-milli"] <= 4000:
+        fail(f"{overlay}: max-multiplier-milli must be between base and 4000")
+    for name in ("attack-smoothing-milli", "release-smoothing-milli"):
+        if not 1 <= settings[name] <= 1000:
+            fail(f"{overlay}: {name} must be in [1, 1000]")
+    if not 0 < settings["reference-interval-ms"] < settings["idle-reset-ms"] <= 65535:
+        fail(f"{overlay}: expected 0 < reference-interval-ms < idle-reset-ms <= 65535")
 
     conf = (
         repo
@@ -71,7 +88,7 @@ def pointer_acceleration_settings(repo: Path) -> tuple[int, int, int, bool]:
     if enabled_match is None:
         fail(f"{conf}: expected CONFIG_ZEN_POINTER_ACCELERATION=y or n")
 
-    return takeoff, full, maximum, enabled_match.group(1) == "y"
+    return settings, enabled_match.group(1) == "y"
 
 
 def verify_sources(repo: Path) -> None:
@@ -136,8 +153,6 @@ def verify_sources(repo: Path) -> None:
     right_pmw_text = read_text(right_pmw_listener)
     for expected in (
         'compatible = "zmk,input-processor-pointer-acceleration";',
-        "pointer_acceleration_output_listener: pointer_acceleration_output_listener",
-        "device = <&pointer_acceleration>;",
         "pmw3610_scroll_scaler: pmw3610_scroll_scaler",
         "<&pmw_gesture_processor>,\n        <&zip_temp_layer 1 10000>,\n        <&pointer_acceleration>;",
         "<&zip_temp_layer 1 10000>,",
@@ -145,6 +160,11 @@ def verify_sources(repo: Path) -> None:
     ):
         require(right_pmw_text, expected, right_pmw_listener)
     pointer_acceleration_settings(repo)
+    for unexpected in (
+        "pointer_acceleration_output_listener",
+        "device = <&pointer_acceleration>;",
+    ):
+        reject(right_pmw_text, unexpected, right_pmw_listener)
     for unexpected in (
         "runtime_input_processor",
         "settings-id",
@@ -294,7 +314,7 @@ def verify_build(build_dir: Path, repo: Path) -> None:
     ):
         require(config_text, expected, config)
 
-    takeoff, full, maximum, enabled = pointer_acceleration_settings(repo)
+    acceleration, enabled = pointer_acceleration_settings(repo)
     if enabled:
         require(config_text, "CONFIG_ZEN_POINTER_ACCELERATION=y", config)
     else:
@@ -315,10 +335,7 @@ def verify_build(build_dir: Path, repo: Path) -> None:
         "require-prior-idle-ms = < 0x12c >;",
         "excluded-positions = < 0x13 0x14 0x15 0x18 0x26 0x27 0x29 >;",
         "< &pmw3610_scroll_scaler 0x1 0x28 >;",
-        f"takeoff-speed = < 0x{takeoff:x} >;",
-        f"full-speed = < 0x{full:x} >;",
-        f"max-multiplier-milli = < 0x{maximum:x} >;",
-        'device = < &pointer_acceleration >;',
+        *(f"{name} = < 0x{value:x} >;" for name, value in acceleration.items()),
         "< &pmw_gesture_processor >, < &zip_temp_layer 0x1 0x2710 >, < &pointer_acceleration >;",
         "< &zip_xy_scaler 0x1 0x38 >, < &zip_xy_transform 0x3 >, < &zip_xy_to_scroll_mapper >, < &left_pmw3610_scroll_scaler 0x3 0x50 >;",
     ):
@@ -326,6 +343,7 @@ def verify_build(build_dir: Path, repo: Path) -> None:
     for unexpected in (
         "runtime_input_processor",
         'compatible = "cormoran,pmw3610";',
+        'device = < &pointer_acceleration >;',
     ):
         reject(dts_text, unexpected, dts)
 

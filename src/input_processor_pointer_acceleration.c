@@ -25,122 +25,18 @@ struct pointer_acceleration_config {
     struct zen_pointer_accel_curve curve;
 };
 
-struct pointer_acceleration_data;
-
-struct pointer_acceleration_output_state {
-    struct k_work_delayable work;
-    struct pointer_acceleration_data *data;
-    const struct device *dev;
-    int64_t pending_x;
-    int64_t pending_y;
-    int16_t inflight_y;
-    bool waiting_for_y;
-};
-
-struct pointer_acceleration_listener_state {
-    struct zen_pointer_accel_state acceleration;
-    struct pointer_acceleration_output_state output;
-    int64_t frame_x;
-    int64_t frame_y;
-};
-
 struct pointer_acceleration_data {
-    struct k_mutex lock;
-    struct pointer_acceleration_listener_state listeners[ZMK_INPUT_LISTENERS_LEN];
+    struct zen_pointer_accel_state listeners[ZMK_INPUT_LISTENERS_LEN];
 };
 
-static int64_t saturating_add(int64_t lhs, int64_t rhs) {
-    if (rhs > 0 && lhs > INT64_MAX - rhs) {
-        return INT64_MAX;
+static int32_t clamp_i32(int64_t value) {
+    if (value > INT32_MAX) {
+        return INT32_MAX;
     }
-    if (rhs < 0 && lhs < INT64_MIN - rhs) {
-        return INT64_MIN;
+    if (value < INT32_MIN) {
+        return INT32_MIN;
     }
-    return lhs + rhs;
-}
-
-static uint64_t magnitude_i64(int64_t value) {
-    return value < 0 ? (uint64_t)(-(value + 1)) + 1U : (uint64_t)value;
-}
-
-static int16_t proportional_chunk(int64_t value, uint64_t largest_magnitude) {
-    if (value == 0) {
-        return 0;
-    }
-    if (largest_magnitude <= INT16_MAX) {
-        return (int16_t)value;
-    }
-
-    uint64_t magnitude = magnitude_i64(value);
-    while (largest_magnitude > UINT32_MAX) {
-        magnitude = (magnitude + 1U) >> 1;
-        largest_magnitude = (largest_magnitude + 1U) >> 1;
-    }
-    const uint64_t scaled = (magnitude * INT16_MAX) / largest_magnitude;
-    const int16_t chunk = (int16_t)(scaled == 0 ? 1 : scaled);
-    return value < 0 ? (int16_t)-chunk : chunk;
-}
-
-static void pointer_acceleration_report_work(struct k_work *work) {
-    struct k_work_delayable *delayable = k_work_delayable_from_work(work);
-    struct pointer_acceleration_output_state *output =
-        CONTAINER_OF(delayable, struct pointer_acceleration_output_state, work);
-    struct pointer_acceleration_data *data = output->data;
-    bool retry = false;
-    bool more = false;
-
-    if (k_mutex_lock(&data->lock, K_FOREVER) < 0) {
-        k_work_reschedule(&output->work, K_MSEC(1));
-        return;
-    }
-
-    if (output->waiting_for_y) {
-        const int ret =
-            input_report_rel(output->dev, INPUT_REL_Y, output->inflight_y, true, K_NO_WAIT);
-        if (ret < 0) {
-            retry = true;
-        } else {
-            output->pending_y -= output->inflight_y;
-            output->inflight_y = 0;
-            output->waiting_for_y = false;
-        }
-    } else {
-        const uint64_t largest_magnitude =
-            MAX(magnitude_i64(output->pending_x), magnitude_i64(output->pending_y));
-        const int16_t x = proportional_chunk(output->pending_x, largest_magnitude);
-        const int16_t y = proportional_chunk(output->pending_y, largest_magnitude);
-
-        if (x != 0) {
-            const int ret = input_report_rel(output->dev, INPUT_REL_X, x, y == 0, K_NO_WAIT);
-            if (ret < 0) {
-                retry = true;
-            } else {
-                output->pending_x -= x;
-            }
-        }
-
-        if (!retry && y != 0) {
-            const int ret = input_report_rel(output->dev, INPUT_REL_Y, y, true, K_NO_WAIT);
-            if (ret < 0) {
-                retry = true;
-                if (x != 0) {
-                    output->inflight_y = y;
-                    output->waiting_for_y = true;
-                }
-            } else {
-                output->pending_y -= y;
-            }
-        }
-    }
-
-    more = output->waiting_for_y || output->pending_x != 0 || output->pending_y != 0;
-    k_mutex_unlock(&data->lock);
-
-    if (retry) {
-        k_work_reschedule(&output->work, K_MSEC(1));
-    } else if (more) {
-        k_work_reschedule(&output->work, K_NO_WAIT);
-    }
+    return (int32_t)value;
 }
 
 static int pointer_acceleration_handle_event(
@@ -168,37 +64,14 @@ static int pointer_acceleration_handle_event(
         return ZMK_INPUT_PROC_CONTINUE;
     }
 
-    if (k_mutex_lock(&data->lock, K_FOREVER) < 0) {
-        return ZMK_INPUT_PROC_CONTINUE;
-    }
+    const enum zen_pointer_accel_axis axis = event->code == INPUT_REL_X
+                                                   ? ZEN_POINTER_ACCEL_AXIS_X
+                                                   : ZEN_POINTER_ACCEL_AXIS_Y;
+    event->value = clamp_i32(zen_pointer_accel_process_axis(
+        &config->curve, &data->listeners[listener_index], axis, event->value, event->sync,
+        k_uptime_get()));
 
-    struct pointer_acceleration_listener_state *state = &data->listeners[listener_index];
-
-    const int64_t raw_value = event->value;
-    if (event->code == INPUT_REL_X) {
-        state->frame_x = saturating_add(state->frame_x, raw_value);
-    } else {
-        state->frame_y = saturating_add(state->frame_y, raw_value);
-    }
-    event->value = 0;
-
-    if (!event->sync) {
-        k_mutex_unlock(&data->lock);
-        return ZMK_INPUT_PROC_STOP;
-    }
-
-    int64_t accelerated_x;
-    int64_t accelerated_y;
-    zen_pointer_accel_apply(&config->curve, &state->acceleration, state->frame_x,
-                            state->frame_y, &accelerated_x, &accelerated_y);
-    state->frame_x = 0;
-    state->frame_y = 0;
-    state->output.pending_x = saturating_add(state->output.pending_x, accelerated_x);
-    state->output.pending_y = saturating_add(state->output.pending_y, accelerated_y);
-
-    k_mutex_unlock(&data->lock);
-    k_work_reschedule(&state->output.work, K_NO_WAIT);
-    return ZMK_INPUT_PROC_STOP;
+    return ZMK_INPUT_PROC_CONTINUE;
 }
 
 static const struct zmk_input_processor_driver_api pointer_acceleration_driver_api = {
@@ -207,35 +80,57 @@ static const struct zmk_input_processor_driver_api pointer_acceleration_driver_a
 
 static int pointer_acceleration_init(const struct device *dev) {
     struct pointer_acceleration_data *data = dev->data;
-    k_mutex_init(&data->lock);
+    const struct pointer_acceleration_config *config = dev->config;
     for (size_t i = 0; i < ARRAY_SIZE(data->listeners); i++) {
-        zen_pointer_accel_reset(&data->listeners[i].acceleration);
-        data->listeners[i].output.data = data;
-        data->listeners[i].output.dev = dev;
-        k_work_init_delayable(&data->listeners[i].output.work,
-                              pointer_acceleration_report_work);
+        zen_pointer_accel_reset(&data->listeners[i], &config->curve);
     }
     return 0;
 }
 
 #define POINTER_ACCELERATION_INST(n)                                                               \
-    BUILD_ASSERT(DT_INST_PROP(n, takeoff_speed) <= UINT16_MAX,                                    \
-                 "Pointer acceleration takeoff-speed exceeds uint16");                           \
-    BUILD_ASSERT(DT_INST_PROP(n, full_speed) <= UINT16_MAX,                                       \
-                 "Pointer acceleration full-speed exceeds uint16");                              \
+    BUILD_ASSERT(DT_INST_PROP(n, base_multiplier_milli) >= 500,                                  \
+                 "Pointer acceleration base multiplier must be at least 0.5x");                 \
+    BUILD_ASSERT(DT_INST_PROP(n, base_multiplier_milli) <=                                       \
+                     ZEN_POINTER_ACCEL_MULTIPLIER_ONE,                                            \
+                 "Pointer acceleration base multiplier must not exceed 1.0x");                  \
+    BUILD_ASSERT(DT_INST_PROP(n, takeoff_speed) <= UINT16_MAX,                                   \
+                 "Pointer acceleration takeoff-speed exceeds uint16");                          \
+    BUILD_ASSERT(DT_INST_PROP(n, full_speed) <= UINT16_MAX,                                      \
+                 "Pointer acceleration full-speed exceeds uint16");                             \
     BUILD_ASSERT(DT_INST_PROP(n, full_speed) > DT_INST_PROP(n, takeoff_speed),                    \
-                 "Pointer acceleration full-speed must exceed takeoff-speed");                   \
-    BUILD_ASSERT(DT_INST_PROP(n, max_multiplier_milli) >=                                         \
-                     ZEN_POINTER_ACCEL_MULTIPLIER_ONE,                                             \
-                 "Pointer acceleration maximum multiplier must be at least 1.0x");               \
-    BUILD_ASSERT(DT_INST_PROP(n, max_multiplier_milli) <= 4000,                                   \
-                 "Pointer acceleration maximum multiplier must not exceed 4.0x");                \
+                 "Pointer acceleration full-speed must exceed takeoff-speed");                  \
+    BUILD_ASSERT(DT_INST_PROP(n, max_multiplier_milli) >=                                        \
+                     DT_INST_PROP(n, base_multiplier_milli),                                      \
+                 "Pointer acceleration maximum multiplier must exceed the base");               \
+    BUILD_ASSERT(DT_INST_PROP(n, max_multiplier_milli) <= 4000,                                  \
+                 "Pointer acceleration maximum multiplier must not exceed 4.0x");               \
+    BUILD_ASSERT(DT_INST_PROP(n, attack_smoothing_milli) <= 1000,                                \
+                 "Pointer acceleration attack smoothing must not exceed 1.0");                  \
+    BUILD_ASSERT(DT_INST_PROP(n, attack_smoothing_milli) > 0,                                    \
+                 "Pointer acceleration attack smoothing must be positive");                    \
+    BUILD_ASSERT(DT_INST_PROP(n, release_smoothing_milli) <= 1000,                               \
+                 "Pointer acceleration release smoothing must not exceed 1.0");                 \
+    BUILD_ASSERT(DT_INST_PROP(n, release_smoothing_milli) > 0,                                   \
+                 "Pointer acceleration release smoothing must be positive");                   \
+    BUILD_ASSERT(DT_INST_PROP(n, reference_interval_ms) > 0,                                     \
+                 "Pointer acceleration reference interval must be positive");                   \
+    BUILD_ASSERT(DT_INST_PROP(n, reference_interval_ms) <= UINT16_MAX,                            \
+                 "Pointer acceleration reference interval exceeds uint16");                    \
+    BUILD_ASSERT(DT_INST_PROP(n, idle_reset_ms) <= UINT16_MAX,                                   \
+                 "Pointer acceleration idle reset exceeds uint16");                            \
+    BUILD_ASSERT(DT_INST_PROP(n, idle_reset_ms) > DT_INST_PROP(n, reference_interval_ms),         \
+                 "Pointer acceleration idle reset must exceed the reference interval");         \
     static const struct pointer_acceleration_config pointer_acceleration_config_##n = {            \
         .curve =                                                                                   \
             {                                                                                      \
+                .base_multiplier_milli = DT_INST_PROP(n, base_multiplier_milli),                  \
                 .takeoff_speed = DT_INST_PROP(n, takeoff_speed),                                  \
                 .full_speed = DT_INST_PROP(n, full_speed),                                        \
                 .max_multiplier_milli = DT_INST_PROP(n, max_multiplier_milli),                    \
+                .attack_smoothing_milli = DT_INST_PROP(n, attack_smoothing_milli),                \
+                .release_smoothing_milli = DT_INST_PROP(n, release_smoothing_milli),              \
+                .reference_interval_ms = DT_INST_PROP(n, reference_interval_ms),                  \
+                .idle_reset_ms = DT_INST_PROP(n, idle_reset_ms),                                  \
             },                                                                                     \
     };                                                                                             \
     static struct pointer_acceleration_data pointer_acceleration_data_##n;                         \
