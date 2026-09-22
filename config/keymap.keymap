@@ -24,16 +24,6 @@
     combos {
         compatible = "zmk,combos";
 
-        scroll {
-            bindings = <&mo 2>;
-            key-positions = <20 21>;
-        };
-
-        gesture {
-            bindings = <&mo 3>;
-            key-positions = <8 9>;
-        };
-
         exit_app {
             bindings = <&kp LG(Q)>;
             key-positions = <9 10>;
