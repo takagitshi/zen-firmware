@@ -87,6 +87,22 @@
         reset-on-layer = <2>;
     };
 
+    gesture_2_processor: gesture_2_processor {
+        compatible = "zmk,input-processor-gesture";
+        #input-processor-cells = <0>;
+        status = "disabled";
+        layer = <4>;
+        /* Layer 4 slots: I = up, J = left, L = right, comma = down. */
+        binding-layer = <4>;
+        up-position = <8>;
+        left-position = <19>;
+        right-position = <21>;
+        down-position = <34>;
+        threshold = <30>;
+        cooldown-ms = <150>;
+        reset-on-layer = <2>;
+    };
+
     pointing_listener: pointing_listener {
         compatible = "zmk,input-listener";
         status = "disabled";

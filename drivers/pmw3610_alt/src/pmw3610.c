@@ -560,7 +560,8 @@ static int pmw3610_report_data(const struct device *dev) {
 static bool pmw3610_acceleration_bypassed(const struct pixart_config *config) {
 #if IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
     return zmk_keymap_layer_active(config->acceleration_scroll_layer) ||
-           zmk_keymap_layer_active(config->acceleration_gesture_layer);
+           zmk_keymap_layer_active(config->acceleration_gesture_layer) ||
+           zmk_keymap_layer_active(config->acceleration_gesture_2_layer);
 #else
     ARG_UNUSED(config);
     return true;
@@ -941,6 +942,11 @@ static const struct sensor_driver_api pmw3610_driver_api = {
     BUILD_ASSERT(DT_PROP(DT_DRV_INST(n), zen_pointer_acceleration_gesture_layer) <                \
                      ZMK_KEYMAP_LAYERS_LEN,                                                       \
                  "Pointer acceleration Gesture layer must exist");                              \
+    BUILD_ASSERT(DT_PROP(DT_DRV_INST(n), zen_pointer_acceleration_gesture_2_layer) < 32,           \
+                 "Pointer acceleration Gesture 2 layer must fit the layer-state bitmap");       \
+    BUILD_ASSERT(DT_PROP(DT_DRV_INST(n), zen_pointer_acceleration_gesture_2_layer) <               \
+                     ZMK_KEYMAP_LAYERS_LEN,                                                       \
+                 "Pointer acceleration Gesture 2 layer must exist");                            \
     static struct pixart_data data##n;                                                             \
     static const struct pixart_config config##n = {                                                \
 		.spi = SPI_DT_SPEC_INST_GET(n, PMW3610_SPI_MODE, 0),		                               \
@@ -959,6 +965,8 @@ static const struct sensor_driver_api pmw3610_driver_api = {
             DT_PROP(DT_DRV_INST(n), zen_pointer_acceleration_scroll_layer),                        \
         .acceleration_gesture_layer =                                                             \
             DT_PROP(DT_DRV_INST(n), zen_pointer_acceleration_gesture_layer),                       \
+        .acceleration_gesture_2_layer =                                                           \
+            DT_PROP(DT_DRV_INST(n), zen_pointer_acceleration_gesture_2_layer),                     \
         .acceleration_curve =                                                                     \
             {                                                                                      \
                 .base_gain_milli =                                                                \

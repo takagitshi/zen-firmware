@@ -42,6 +42,19 @@ def reject(text: str, unexpected: str, source: Path) -> None:
         fail(f"{source}: unexpected {unexpected!r}")
 
 
+def parse_layer_bindings(layer: str, source: Path) -> list[str]:
+    match = re.search(r"bindings\s*=\s*<(?P<body>.*?)>;", layer, re.DOTALL)
+    if match is None:
+        fail(f"{source}: layer bindings are missing")
+    result: list[str] = []
+    for line in match.group("body").splitlines():
+        starts = list(re.finditer(r"&[A-Za-z0-9_]+", line))
+        for index, start in enumerate(starts):
+            end = starts[index + 1].start() if index + 1 < len(starts) else len(line)
+            result.append(re.sub(r"\s+", " ", line[start.start():end].strip()))
+    return result
+
+
 def pointer_acceleration_settings(repo: Path) -> tuple[dict[str, int], bool]:
     overlay = (
         repo
@@ -66,6 +79,7 @@ def pointer_acceleration_settings(repo: Path) -> tuple[dict[str, int], bool]:
             "zen-pointer-acceleration-idle-reset-ms",
             "zen-pointer-acceleration-scroll-layer",
             "zen-pointer-acceleration-gesture-layer",
+            "zen-pointer-acceleration-gesture-2-layer",
         )
     }
     takeoff = settings["zen-pointer-acceleration-takeoff-speed"]
@@ -86,6 +100,8 @@ def pointer_acceleration_settings(repo: Path) -> tuple[dict[str, int], bool]:
         fail(f"{overlay}: Scroll bypass must remain on layer 2")
     if settings["zen-pointer-acceleration-gesture-layer"] != 3:
         fail(f"{overlay}: Gesture bypass must remain on layer 3")
+    if settings["zen-pointer-acceleration-gesture-2-layer"] != 4:
+        fail(f"{overlay}: Gesture 2 bypass must remain on layer 4")
     require(text, "zen-pointer-acceleration;", overlay)
 
     conf = (
@@ -164,7 +180,9 @@ def verify_sources(repo: Path) -> None:
         "pmw3610_scroll_scaler: pmw3610_scroll_scaler",
         "&pointing_device {",
         "zen-pointer-acceleration;",
-        "<&pmw_gesture_processor>,\n        <&zip_temp_layer 1 10000>;",
+        "<&pmw_gesture_2_processor>,",
+        "<&pmw_gesture_processor>,",
+        "<&zip_temp_layer 1 10000>;",
         "<&pmw3610_scroll_scaler 1 60>;",
     ):
         require(right_pmw_text, expected, right_pmw_listener)
@@ -182,6 +200,12 @@ def verify_sources(repo: Path) -> None:
         'compatible = "cormoran,pmw3610";',
     ):
         reject(pmw_text + right_pmw_text, unexpected, right_pmw_listener)
+    normalized_right_pmw = re.sub(r"\s+", "", right_pmw_text)
+    require(
+        normalized_right_pmw,
+        "<&pmw_gesture_2_processor>,<&pmw_gesture_processor>,<&zip_temp_layer110000>;",
+        right_pmw_listener,
+    )
 
     right_overlay = repo / "boards/shields/zen/zen_right.overlay"
     right_text = read_text(right_overlay)
@@ -190,6 +214,12 @@ def verify_sources(repo: Path) -> None:
         "<&zip_temp_layer 1 10000>;",
     ):
         require(right_text, expected, right_overlay)
+    normalized_right = re.sub(r"\s+", "", right_text)
+    require(
+        normalized_right,
+        "<&gesture_2_processor>,<&gesture_processor>,<&zip_temp_layer110000>;",
+        right_overlay,
+    )
 
     listener = repo / "snippets/input-listener/input-listener.overlay"
     listener_text = read_text(listener)
@@ -222,18 +252,19 @@ def verify_sources(repo: Path) -> None:
         int(value)
         for value in re.findall(r"^\s*layer_(\d+)\s*\{", keymap_text, re.MULTILINE)
     ]
-    if layer_ids != list(range(9)):
-        fail(f"{keymap}: expected layers 0 through 8, found {layer_ids}")
+    if layer_ids != list(range(10)):
+        fail(f"{keymap}: expected layers 0 through 9, found {layer_ids}")
     expected_layer_names = {
         0: "Base",
         1: "Mouse",
         2: "Scroll",
-        3: "Gesture",
-        4: "symbol",
-        5: "number",
-        6: "move",
-        7: "setting",
-        8: "User 8",
+        3: "Gesture 1",
+        4: "Gesture 2",
+        5: "symbol",
+        6: "number",
+        7: "move",
+        8: "setting",
+        9: "User 9",
     }
     layers = {}
     for layer_id, display_name in expected_layer_names.items():
@@ -246,6 +277,13 @@ def verify_sources(repo: Path) -> None:
             fail(f"{keymap}: missing layer {layer_id}")
         layers[layer_id] = layer.group("body")
         require(layers[layer_id], f'display-name = "{display_name}";', keymap)
+
+    bindings_by_layer = {
+        layer_id: parse_layer_bindings(layer, keymap) for layer_id, layer in layers.items()
+    }
+    for layer_id, bindings in bindings_by_layer.items():
+        if len(bindings) != 50:
+            fail(f"{keymap}: layer {layer_id} must retain all 50 editable slots")
 
     mouse_bindings = re.search(
         r"bindings\s*=\s*<(?P<body>.*?)>;", layers[1], re.DOTALL
@@ -277,11 +315,29 @@ def verify_sources(repo: Path) -> None:
             f"configured Mouse layer positions {configured_mouse_positions}"
         )
 
+    if bindings_by_layer[1][22] != "&kp RIGHT_COMMAND":
+        fail(f"{keymap}: Mouse position 22 must retain the requested right Command key")
+    gesture_2_access = bindings_by_layer[0] + bindings_by_layer[1]
+    if not any(re.match(r"&(?:lt|mo)\s+4\b", item) for item in gesture_2_access):
+        fail(f"{keymap}: Gesture 2 must remain reachable from Base or Mouse")
+    for layer_id in (3, 4):
+        for position in (8, 19, 21, 34):
+            behavior = bindings_by_layer[layer_id][position].split()[0]
+            if behavior in {"&trans", "&none"}:
+                fail(f"{keymap}: Gesture layer {layer_id} action slot {position} is empty")
+    base_bindings = " ".join(bindings_by_layer[0])
+    for expected in ("&lt 5 LANG1", "&lt 6 SPACE", "&lt 7 ENTER"):
+        require(base_bindings, expected, keymap)
+    if not any(item == "&mo 8" for item in bindings_by_layer[5]):
+        fail(f"{keymap}: Symbol-to-setting binding did not move with setting")
+
     base_dtsi = repo / "boards/shields/zen/zen.dtsi"
     base_text = read_text(base_dtsi)
     for expected in (
         "gesture_processor: gesture_processor {",
         "binding-layer = <3>;",
+        "gesture_2_processor: gesture_2_processor {",
+        "binding-layer = <4>;",
         "threshold = <30>;",
         "reset-on-layer = <2>;",
     ):
@@ -291,10 +347,30 @@ def verify_sources(repo: Path) -> None:
     left_text = read_text(left_listeners)
     for expected in (
         "pmw_gesture_processor: pmw_gesture_processor {",
+        "pmw_gesture_2_processor: pmw_gesture_2_processor {",
+        "binding-layer = <4>;",
         "threshold = <200>;",
         "<&left_pmw3610_scroll_scaler 3 80>;",
     ):
         require(left_text, expected, left_listeners)
+    normalized_left = re.sub(r"\s+", "", left_text)
+    require(
+        normalized_left,
+        "<&pmw_gesture_2_processor>,<&pmw_gesture_processor>,<&zip_temp_layer1500>;",
+        left_listeners,
+    )
+    if normalized_left.count(
+        "<&gesture_2_processor>,<&gesture_processor>,<&zip_temp_layer1500>;"
+    ) != 2:
+        fail(f"{left_listeners}: PAW3222 and trackpad Gesture 2 chains are incomplete")
+
+    split_listener = repo / "snippets/input-split-listener/input-split-listener.overlay"
+    split_text = re.sub(r"\s+", "", read_text(split_listener))
+    require(
+        split_text,
+        "<&zip_xy_scaler156>,<&gesture_2_processor>,<&gesture_processor>;",
+        split_listener,
+    )
 
     source_suffixes = {".c", ".conf", ".dtsi", ".h", ".keymap", ".overlay", ".py", ".yml", ".yaml"}
     repo_text = "\n".join(
@@ -344,11 +420,11 @@ def verify_build(build_dir: Path, repo: Path) -> None:
         'compatible = "pixart,pmw3610-alt";',
         "cpi = < 0x4b0 >;",
         "require-prior-idle-ms = < 0x12c >;",
-        "excluded-positions = < 0x13 0x14 0x15 0x18 0x26 0x27 0x29 >;",
+        "excluded-positions = < 0x13 0x14 0x15 0x16 0x18 0x26 0x27 0x29 >;",
         "< &pmw3610_scroll_scaler 0x1 0x3c >;",
         *(f"{name} = < 0x{value:x} >;" for name, value in acceleration.items()),
         "zen-pointer-acceleration;",
-        "< &pmw_gesture_processor >, < &zip_temp_layer 0x1 0x2710 >;",
+        "< &pmw_gesture_2_processor >, < &pmw_gesture_processor >, < &zip_temp_layer 0x1 0x2710 >;",
         "< &zip_xy_scaler 0x1 0x38 >, < &zip_xy_transform 0x3 >, < &zip_xy_to_scroll_mapper >, < &left_pmw3610_scroll_scaler 0x3 0x50 >;",
     ):
         require(dts_text, expected, dts)

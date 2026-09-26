@@ -43,18 +43,18 @@
             bindings = <
 &kp ESCAPE        &kp Q         &kp W     &kp E             &kp R                 &kp T        &kp Y        &kp U          &lt 3 I            &kp O           &kp P           &kp TILDE
 &kp TAB           &kp A         &kp S     &kp D             &kp F                 &kp G        &kp H        &kp J          &lt 2 K            &kp L           &kp SEMICOLON   &kp MINUS
-&kp LSHFT         &kp Z         &kp X     &kp C             &kp V                 &kp B        &kp DELETE   &kp BACKSPACE  &lt 5 N            &lt 3 M         &kp COMMA       &kp DOT          &kp UP_ARROW  &mt RSHFT QUESTION
-&kp LEFT_COMMAND  &kp LEFT_ALT  &kp CAPS  &kp LEFT_COMMAND  &mt LCTRL LANGUAGE_2  &lt 4 LANG1  &lt 5 SPACE  &lt 6 ENTER    &kp RIGHT_CONTROL  &kp LEFT_ARROW  &kp DOWN_ARROW  &kp RIGHT_ARROW
+&kp LSHFT         &kp Z         &kp X     &kp C             &kp V                 &kp B        &kp DELETE   &kp BACKSPACE  &kp N              &kp M           &lt 4 COMMA     &kp DOT          &kp UP_ARROW  &mt RSHFT QUESTION
+ &kp LEFT_COMMAND  &kp LEFT_ALT  &kp CAPS  &kp LEFT_COMMAND  &mt LCTRL LANGUAGE_2  &lt 5 LANG1  &lt 6 SPACE  &lt 7 ENTER    &kp RIGHT_CONTROL  &kp LEFT_ARROW  &kp DOWN_ARROW  &kp RIGHT_ARROW
             >;
         };
 
         layer_1 {
             display-name = "Mouse";
             bindings = <
-&trans            &trans        &trans  &trans            &trans  &trans  &trans  &trans    &trans           &trans    &trans  &trans
-&trans            &trans        &trans  &trans            &trans  &trans  &trans  &mkp MB1  &mouse_lt 2 MB3  &mkp MB2  &trans  &trans
-&kp LSHIFT        &trans        &trans  &trans            &trans  &trans  &trans  &trans    &trans           &trans    &trans  &trans  &trans  &trans
-&kp LEFT_COMMAND  &kp LEFT_ALT  &trans  &kp LEFT_COMMAND  &trans  &trans  &trans  &trans    &trans           &trans    &trans  &trans
+&trans            &trans        &trans  &trans            &trans  &trans  &trans  &trans    &trans           &trans    &trans             &trans
+&trans            &trans        &trans  &trans            &trans  &trans  &trans  &mkp MB1  &mouse_lt 2 MB3  &mkp MB2  &kp RIGHT_COMMAND  &trans
+&kp LSHIFT        &trans        &trans  &trans            &trans  &trans  &trans  &trans    &trans           &trans    &trans             &trans  &trans  &trans
+&kp LEFT_COMMAND  &kp LEFT_ALT  &trans  &kp LEFT_COMMAND  &trans  &trans  &trans  &trans    &trans           &trans    &trans             &trans
             >;
         };
 
@@ -69,7 +69,7 @@
         };
 
         layer_3 {
-            display-name = "Gesture";
+            display-name = "Gesture 1";
 
             /* Conductor-style editable gesture slots:
              * I = up, J = left, L = right, comma/< = down.
@@ -84,16 +84,31 @@
         };
 
         layer_4 {
+            display-name = "Gesture 2";
+
+            /* Editable gesture slots:
+             * I = up, J = left, L = right, comma/< = down.
+             */
+
+            bindings = <
+ &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans              &kp LG(T)         &trans        &trans        &trans
+ &trans  &trans  &trans  &trans  &trans  &trans  &trans  &kp LC(LS(TAB))    &trans            &kp LC(TAB)  &trans        &trans
+ &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans              &trans            &trans        &kp LG(LS(N))  &trans  &trans  &trans
+ &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans              &trans            &trans        &trans        &trans
+            >;
+        };
+
+        layer_5 {
             display-name = "symbol";
             bindings = <
 &trans  &kp EXCLAMATION  &kp AT_SIGN     &kp HASH        &kp DOLLAR     &kp PERCENT    &kp CARET  &kp AMPERSAND  &kp ASTRK  &kp LEFT_PARENTHESIS  &kp RIGHT_PARENTHESIS  &trans
 &trans  &kp LG(LS(N3))   &kp LG(LS(N4))  &kp LG(LS(N5))  &kp LA(A)      &kp LG(LA(S))  &kp MINUS  &kp EQUAL      &kp SLASH  &kp LEFT_BRACKET      &kp RIGHT_BRACKET      &trans
 &trans  &trans           &trans          &kp LG(LA(C))   &kp LG(LA(V))  &trans         &trans     &trans         &trans     &trans                &kp SEMICOLON          &kp SQT  &kp GRAVE  &trans
-&trans  &trans           &trans          &trans          &trans         &trans         &mo 7      &trans         &trans     &trans                &trans                 &trans
+ &trans  &trans           &trans          &trans          &trans         &trans         &mo 8      &trans         &trans     &trans                &trans                 &trans
             >;
         };
 
-        layer_5 {
+        layer_6 {
             display-name = "number";
             bindings = <
 &trans  &kp F1   &kp F2   &kp F3  &kp F4  &kp F5   &kp NUMBER_7  &kp NUMBER_8  &kp NUMBER_9  &kp PLUS      &kp MINUS  &trans
@@ -103,17 +118,17 @@
             >;
         };
 
-        layer_6 {
+        layer_7 {
             display-name = "move";
             bindings = <
-&trans  &trans  &kp LG(NUMBER_0)        &kp LG(MINUS)      &kp LG(PLUS)       &trans  &kp LG(T)  &kp LC(LS(TAB))  &kp UP_ARROW    &kp LC(TAB)         &kp LG(W)      &trans
-&trans  &trans  &kp K_MUTE              &kp C_VOLUME_DOWN  &kp C_VOLUME_UP    &trans  &kp LC(A)  &kp LEFT_ARROW   &kp DOWN_ARROW  &kp RIGHT_ARROW     &kp LC(E)      &trans
-&trans  &trans  &kp LA(LC(LEFT_ARROW))  &kp LA(LC(F))      &kp LA(LC(RIGHT))  &trans  &trans     &kp LG(LS(N))    &kp HOME        &kp LG(LEFT_ARROW)  &kp LG(LA(P))  &kp LG(RIGHT_ARROW)  &kp END  &trans
-&trans  &trans  &trans                  &trans             &trans             &trans  &trans     &trans           &trans          &kp LG(R)           &kp LG(LS(H))  &trans
+&trans  &trans  &kp LG(NUMBER_0)        &kp LG(MINUS)      &kp LG(PLUS)       &trans  &kp LG(C)  &kp LG(LA(C))   &kp UP_ARROW    &kp LG(V)           &kp LG(W)      &trans
+&trans  &trans  &kp K_MUTE              &kp C_VOLUME_DOWN  &kp C_VOLUME_UP    &trans  &kp LC(A)  &kp LEFT_ARROW  &kp DOWN_ARROW  &kp RIGHT_ARROW     &kp LC(E)      &trans
+&trans  &trans  &kp LA(LC(LEFT_ARROW))  &kp LA(LC(F))      &kp LA(LC(RIGHT))  &trans  &trans     &kp LG(R)       &kp HOME        &kp LG(LEFT_ARROW)  &kp LG(LA(P))  &kp LG(RIGHT_ARROW)  &kp END  &trans
+&trans  &trans  &trans                  &trans             &trans             &trans  &trans     &trans          &trans          &trans              &kp LG(LS(H))  &trans
             >;
         };
 
-        layer_7 {
+        layer_8 {
             display-name = "setting";
             bindings = <
 &none  &out OUT_BLE  &out OUT_USB  &none  &none  &none  &bt BT_SEL 0  &bt BT_SEL 1  &bt BT_SEL 2  &bt BT_SEL 3  &bt BT_SEL 4    &none
@@ -123,8 +138,8 @@
             >;
         };
 
-        layer_8 {
-            display-name = "User 8";
+        layer_9 {
+            display-name = "User 9";
             bindings = <
 &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans
 &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans  &trans

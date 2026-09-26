@@ -67,3 +67,7 @@ properties:
     type: int
     default: 3
     description: Layer on which acceleration is bypassed for raw gestures
+  zen-pointer-acceleration-gesture-2-layer:
+    type: int
+    default: 4
+    description: Second layer on which acceleration is bypassed for raw gestures

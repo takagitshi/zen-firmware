@@ -21,16 +21,21 @@
  */
 &zip_temp_layer {
     require-prior-idle-ms = <300>;
-    excluded-positions = <19 20 21 24 38 39 41>;
+    excluded-positions = <19 20 21 22 24 38 39 41>;
 };
 
 &gesture_processor {
     status = "okay";
 };
 
+&gesture_2_processor {
+    status = "okay";
+};
+
 &pointing_listener {
     input-processors =
         <&zip_xy_transform (INPUT_TRANSFORM_X_INVERT | INPUT_TRANSFORM_Y_INVERT)>,
+        <&gesture_2_processor>,
         <&gesture_processor>,
         <&zip_temp_layer 1 10000>;
 

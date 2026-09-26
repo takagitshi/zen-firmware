@@ -61,6 +61,7 @@ struct pixart_config {
     bool acceleration_enabled;
     uint8_t acceleration_scroll_layer;
     uint8_t acceleration_gesture_layer;
+    uint8_t acceleration_gesture_2_layer;
     struct zen_pointer_accel_curve acceleration_curve;
 };
 
