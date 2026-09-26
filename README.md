@@ -76,7 +76,7 @@ GitHub Actionsで作成される `firmware` というzipファイルには、以
 無操作で破棄します。送信待ちで複数周期分が蓄積した場合だけ実収集時間で速度を補正し、
 無操作時間そのものは次の高速操作を遅く判定しません。既存のPMW3610 device、input
 queue、sync、15ms周期は維持します。
-Scrollレイヤー2とGestureレイヤー3では加速を迂回し、従来のraw deltaを使います。
+Scrollレイヤー2とGesture 1/2レイヤー3/4では加速を迂回し、従来のraw deltaを使います。
 
 調整値は
 `snippets/input-listener-right-pmw3610/input-listener-right-pmw3610.overlay` の
@@ -90,6 +90,9 @@ Scrollレイヤー2とGestureレイヤー3では加速を迂回し、従来のra
 | `zen-pointer-acceleration-max-gain-milli` | 3000 | 出力速度の傾きと倍率の上限3.0倍 |
 | `zen-pointer-acceleration-reference-interval-ms` | 15 | 速度判定の基準レポート間隔 |
 | `zen-pointer-acceleration-idle-reset-ms` | 60 | 端数を破棄する無操作時間 |
+| `zen-pointer-acceleration-scroll-layer` | 2 | Scrollで加速を迂回するレイヤー |
+| `zen-pointer-acceleration-gesture-layer` | 3 | Gesture 1で加速を迂回するレイヤー |
+| `zen-pointer-acceleration-gesture-2-layer` | 4 | Gesture 2で加速を迂回するレイヤー |
 
 `full-speed` では倍率が急に3.0倍になるわけではありません。初期値では倍率は速度160で
 約1.5倍、320で約2.25倍となり、その後も連続的に3.0倍へ近づきます。まず速度感だけを
@@ -99,7 +102,7 @@ Scrollレイヤー2とGestureレイヤー3では加速を迂回し、従来のra
 元のリニアなPointer 1.0xへ戻す場合は、
 `snippets/input-listener-right-pmw3610/input-listener-right-pmw3610.conf` の
 `CONFIG_ZEN_POINTER_ACCELERATION=y` を `n` に変更します。ScrollはCPI増加を相殺する
-1/60（旧800 CPI・1/40と同じ物理感度）です。PMW3610 Gestureのしきい値は200、
+1/60（旧800 CPI・1/40と同じ物理感度）です。PMW3610 Gesture 1/2のしきい値は200、
 AMLとレポート周期は従来どおりです。
 
 ## うまく接続できない場合
