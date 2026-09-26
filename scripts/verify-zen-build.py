@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import re
+import struct
 import sys
 from pathlib import Path
 
@@ -52,6 +53,67 @@ def parse_layer_bindings(layer: str, source: Path) -> list[str]:
             end = starts[index + 1].start() if index + 1 < len(starts) else len(line)
             result.append(re.sub(r"\s+", " ", line[start.start():end].strip()))
     return result
+
+
+def pointer_acceleration_settings(repo: Path) -> tuple[dict[str, int], bool]:
+    overlay = (
+        repo
+        / "snippets/input-listener-right-pmw3610/input-listener-right-pmw3610.overlay"
+    )
+    text = read_text(overlay)
+
+    def value(property_name: str) -> int:
+        match = re.search(rf"{property_name}\s*=\s*<(\d+)>;", text)
+        if match is None:
+            fail(f"{overlay}: missing numeric {property_name}")
+        return int(match.group(1))
+
+    settings = {
+        name: value(name)
+        for name in (
+            "zen-pointer-acceleration-base-gain-milli",
+            "zen-pointer-acceleration-takeoff-speed",
+            "zen-pointer-acceleration-full-speed",
+            "zen-pointer-acceleration-max-gain-milli",
+            "zen-pointer-acceleration-reference-interval-ms",
+            "zen-pointer-acceleration-idle-reset-ms",
+            "zen-pointer-acceleration-scroll-layer",
+            "zen-pointer-acceleration-gesture-layer",
+            "zen-pointer-acceleration-gesture-2-layer",
+        )
+    }
+    takeoff = settings["zen-pointer-acceleration-takeoff-speed"]
+    full = settings["zen-pointer-acceleration-full-speed"]
+    base = settings["zen-pointer-acceleration-base-gain-milli"]
+    maximum = settings["zen-pointer-acceleration-max-gain-milli"]
+    reference = settings["zen-pointer-acceleration-reference-interval-ms"]
+    idle = settings["zen-pointer-acceleration-idle-reset-ms"]
+    if not 0 <= takeoff < full <= 65535:
+        fail(f"{overlay}: expected 0 <= takeoff-speed < full-speed <= 65535")
+    if not 500 <= base <= 1000:
+        fail(f"{overlay}: base-gain-milli must be in [500, 1000]")
+    if not base <= maximum <= 4000:
+        fail(f"{overlay}: max-gain-milli must be between base and 4000")
+    if not 0 < reference < idle <= 65535:
+        fail(f"{overlay}: expected 0 < reference-interval-ms < idle-reset-ms <= 65535")
+    if settings["zen-pointer-acceleration-scroll-layer"] != 2:
+        fail(f"{overlay}: Scroll bypass must remain on layer 2")
+    if settings["zen-pointer-acceleration-gesture-layer"] != 3:
+        fail(f"{overlay}: Gesture bypass must remain on layer 3")
+    if settings["zen-pointer-acceleration-gesture-2-layer"] != 4:
+        fail(f"{overlay}: Gesture 2 bypass must remain on layer 4")
+    require(text, "zen-pointer-acceleration;", overlay)
+
+    conf = (
+        repo
+        / "snippets/input-listener-right-pmw3610/input-listener-right-pmw3610.conf"
+    )
+    conf_text = read_text(conf)
+    enabled_match = re.search(r"^CONFIG_ZEN_POINTER_ACCELERATION=([yn])$", conf_text, re.MULTILINE)
+    if enabled_match is None:
+        fail(f"{conf}: expected CONFIG_ZEN_POINTER_ACCELERATION=y or n")
+
+    return settings, enabled_match.group(1) == "y"
 
 
 def verify_sources(repo: Path) -> None:
@@ -107,7 +169,7 @@ def verify_sources(repo: Path) -> None:
     pmw_text = read_text(pmw_overlay)
     for expected in (
         'compatible = "pixart,pmw3610-alt";',
-        "cpi = <800>;",
+        "cpi = <1200>;",
         "force-awake;",
     ):
         require(pmw_text, expected, pmw_overlay)
@@ -116,12 +178,22 @@ def verify_sources(repo: Path) -> None:
     right_pmw_text = read_text(right_pmw_listener)
     for expected in (
         "pmw3610_scroll_scaler: pmw3610_scroll_scaler",
+        "&pointing_device {",
+        "zen-pointer-acceleration;",
         "<&pmw_gesture_2_processor>,",
         "<&pmw_gesture_processor>,",
         "<&zip_temp_layer 1 10000>;",
-        "<&pmw3610_scroll_scaler 1 40>;",
+        "<&pmw3610_scroll_scaler 1 60>;",
     ):
         require(right_pmw_text, expected, right_pmw_listener)
+    pointer_acceleration_settings(repo)
+    for unexpected in (
+        "pointer_acceleration_output_listener",
+        "device = <&pointer_acceleration>;",
+        'compatible = "zmk,input-processor-pointer-acceleration";',
+        "<&pointer_acceleration>",
+    ):
+        reject(right_pmw_text, unexpected, right_pmw_listener)
     for unexpected in (
         "runtime_input_processor",
         "settings-id",
@@ -277,7 +349,7 @@ def verify_sources(repo: Path) -> None:
         "pmw_gesture_processor: pmw_gesture_processor {",
         "pmw_gesture_2_processor: pmw_gesture_2_processor {",
         "binding-layer = <4>;",
-        "threshold = <40>;",
+        "threshold = <200>;",
         "<&left_pmw3610_scroll_scaler 3 80>;",
     ):
         require(left_text, expected, left_listeners)
@@ -318,7 +390,7 @@ def verify_sources(repo: Path) -> None:
         reject(repo_text, unexpected, repo)
 
 
-def verify_build(build_dir: Path) -> None:
+def verify_build(build_dir: Path, repo: Path) -> None:
     config = build_dir / "zephyr/.config"
     config_text = read_text(config)
     for expected in (
@@ -327,11 +399,18 @@ def verify_build(build_dir: Path) -> None:
         "CONFIG_ZMK_STUDIO_RPC=y",
     ):
         require(config_text, expected, config)
+
+    acceleration, enabled = pointer_acceleration_settings(repo)
+    if enabled:
+        require(config_text, "CONFIG_ZEN_POINTER_ACCELERATION=y", config)
+    else:
+        require(config_text, "# CONFIG_ZEN_POINTER_ACCELERATION is not set", config)
     for unexpected in (
         "CONFIG_ZMK_SETTINGS_RPC=y",
         "CONFIG_ZMK_RUNTIME_INPUT_PROCESSOR=y",
         "CONFIG_ZMK_CUSTOM_SETTINGS=y",
         "CONFIG_ZMK_PMW3610_CUSTOM_SETTINGS=y",
+        "CONFIG_ZMK_INPUT_PROCESSOR_POINTER_ACCELERATION=y",
     ):
         reject(config_text, unexpected, config)
 
@@ -339,10 +418,12 @@ def verify_build(build_dir: Path) -> None:
     dts_text = " ".join(read_text(dts).split())
     for expected in (
         'compatible = "pixart,pmw3610-alt";',
-        "cpi = < 0x320 >;",
+        "cpi = < 0x4b0 >;",
         "require-prior-idle-ms = < 0x12c >;",
         "excluded-positions = < 0x13 0x14 0x15 0x16 0x18 0x26 0x27 0x29 >;",
-        "< &pmw3610_scroll_scaler 0x1 0x28 >;",
+        "< &pmw3610_scroll_scaler 0x1 0x3c >;",
+        *(f"{name} = < 0x{value:x} >;" for name, value in acceleration.items()),
+        "zen-pointer-acceleration;",
         "< &pmw_gesture_2_processor >, < &pmw_gesture_processor >, < &zip_temp_layer 0x1 0x2710 >;",
         "< &zip_xy_scaler 0x1 0x38 >, < &zip_xy_transform 0x3 >, < &zip_xy_to_scroll_mapper >, < &left_pmw3610_scroll_scaler 0x3 0x50 >;",
     ):
@@ -350,14 +431,44 @@ def verify_build(build_dir: Path) -> None:
     for unexpected in (
         "runtime_input_processor",
         'compatible = "cormoran,pmw3610";',
+        'device = < &pointer_acceleration >;',
+        'compatible = "zmk,input-processor-pointer-acceleration";',
+        "< &pointer_acceleration >",
     ):
         reject(dts_text, unexpected, dts)
+
+
+def uf2_payload(data: bytes) -> bytes:
+    if len(data) == 0 or len(data) % 512 != 0:
+        return data
+
+    blocks: list[tuple[int, bytes]] = []
+    for offset in range(0, len(data), 512):
+        block = data[offset : offset + 512]
+        magic0, magic1, _flags, address, size = struct.unpack_from("<IIIII", block)
+        (magic_end,) = struct.unpack_from("<I", block, 508)
+        if magic0 != 0x0A324655 or magic1 != 0x9E5D5157 or magic_end != 0x0AB16F30:
+            return data
+        if size > 476:
+            fail("invalid UF2 payload size")
+        blocks.append((address, block[32 : 32 + size]))
+
+    blocks.sort(key=lambda item: item[0])
+    payload = bytearray()
+    next_address = blocks[0][0]
+    for address, block_payload in blocks:
+        if address < next_address:
+            fail("overlapping UF2 payload blocks")
+        payload.extend(b"\xff" * (address - next_address))
+        payload.extend(block_payload)
+        next_address = address + len(block_payload)
+    return bytes(payload)
 
 
 def verify_binary(path: Path) -> None:
     if not path.is_file():
         fail(f"missing firmware/ELF: {path}")
-    data = path.read_bytes()
+    data = uf2_payload(path.read_bytes()) if path.suffix.lower() == ".uf2" else path.read_bytes()
     for marker in REQUIRED_BINARY_MARKERS:
         if marker not in data:
             fail(f"{path}: required ZMK Studio subsystem is missing: {marker.decode()}")
@@ -375,7 +486,7 @@ def main() -> int:
 
     verify_sources(args.repo.resolve())
     if args.build_dir:
-        verify_build(args.build_dir.resolve())
+        verify_build(args.build_dir.resolve(), args.repo.resolve())
     if args.firmware:
         verify_binary(args.firmware.resolve())
     print("ZEN build contract: PASS")

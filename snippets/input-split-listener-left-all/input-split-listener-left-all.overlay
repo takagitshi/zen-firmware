@@ -1,9 +1,9 @@
 #include <dt-bindings/zmk/input_transform.h>
 
 / {
-    /* CPI 800 yields 4/3 as many raw counts as the former CPI 600 setup.
-     * Gestures run before pointer scaling, so threshold 40 preserves the
-     * original physical travel. PAW3222 and trackpad keep threshold 30. */
+    /* PMW3610 gestures use raw motion before pointer scaling. At CPI 1200,
+     * threshold 200 requires about 3.3 times the physical travel of the old
+     * 800/40 setting. PAW3222/trackpad stay at 30. */
     pmw_gesture_processor: pmw_gesture_processor {
         compatible = "zmk,input-processor-gesture";
         #input-processor-cells = <0>;
@@ -13,7 +13,7 @@
         left-position = <19>;
         right-position = <21>;
         down-position = <34>;
-        threshold = <40>;
+        threshold = <200>;
         cooldown-ms = <150>;
         reset-on-layer = <2>;
     };
@@ -27,7 +27,7 @@
         left-position = <19>;
         right-position = <21>;
         down-position = <34>;
-        threshold = <40>;
+        threshold = <200>;
         cooldown-ms = <150>;
         reset-on-layer = <2>;
     };

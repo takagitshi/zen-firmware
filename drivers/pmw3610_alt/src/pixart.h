@@ -13,6 +13,7 @@
 #include <zephyr/sys/atomic.h>
 
 #include "pmw3610_logic.h"
+#include <zen/pointer_acceleration.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -22,6 +23,8 @@ extern "C" {
 struct pixart_data {
     const struct device          *dev;
     struct pmw3610_report_accumulator report;
+    struct zen_pointer_accel_state acceleration;
+    struct pmw3610_output_state output;
     bool                         sw_smart_flag; // for pmw3610 smart algorithm
 
     struct gpio_callback         irq_gpio_cb; // motion pin irq callback
@@ -55,6 +58,11 @@ struct pixart_config {
     uint8_t y_input_code;
     bool force_awake;
     bool force_awake_4ms_mode;
+    bool acceleration_enabled;
+    uint8_t acceleration_scroll_layer;
+    uint8_t acceleration_gesture_layer;
+    uint8_t acceleration_gesture_2_layer;
+    struct zen_pointer_accel_curve acceleration_curve;
 };
 
 #ifdef __cplusplus
