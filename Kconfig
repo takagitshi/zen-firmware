@@ -22,6 +22,13 @@ menuconfig PMW3610_ALT
 
 if PMW3610_ALT
 
+config ZEN_POINTER_ACCELERATION
+    bool "ZEN trackball pointer acceleration"
+    default y
+    help
+      Apply the configured same-frame gain curve in the PMW3610 report path.
+      Disable this option to retain the original linear 1.0x pointer path.
+
 config INPUT_PMW3610_INIT_PRIORITY
     int "PMW3610 initialization priority"
     default INPUT_INIT_PRIORITY

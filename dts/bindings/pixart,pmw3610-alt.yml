@@ -32,3 +32,42 @@ properties:
     type: boolean
   force-awake-4ms-mode:
     type: boolean
+  zen-pointer-acceleration:
+    type: boolean
+    description: Enable ZEN same-frame gain acceleration for this sensor instance
+  zen-pointer-acceleration-base-gain-milli:
+    type: int
+    default: 1000
+    description: Low-speed gain in thousandths
+  zen-pointer-acceleration-takeoff-speed:
+    type: int
+    default: 32
+    description: Normalized vector speed where the gain ramp starts
+  zen-pointer-acceleration-full-speed:
+    type: int
+    default: 160
+    description: Normalized vector speed where the output-speed slope reaches maximum gain
+  zen-pointer-acceleration-max-gain-milli:
+    type: int
+    default: 1500
+    description: Maximum output-speed slope and asymptotic multiplier in thousandths
+  zen-pointer-acceleration-reference-interval-ms:
+    type: int
+    default: 15
+    description: Reference interval used to normalize delayed reports
+  zen-pointer-acceleration-idle-reset-ms:
+    type: int
+    default: 60
+    description: Idle time that clears fractional remainder state
+  zen-pointer-acceleration-scroll-layer:
+    type: int
+    default: 2
+    description: Layer on which acceleration is bypassed for raw scrolling
+  zen-pointer-acceleration-gesture-layer:
+    type: int
+    default: 3
+    description: Layer on which acceleration is bypassed for raw gestures
+  zen-pointer-acceleration-gesture-2-layer:
+    type: int
+    default: 4
+    description: Second layer on which acceleration is bypassed for raw gestures

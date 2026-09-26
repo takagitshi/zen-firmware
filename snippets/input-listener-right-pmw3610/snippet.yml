@@ -1,3 +1,4 @@
 name: input-listener-right-pmw3610
 append:
   EXTRA_DTC_OVERLAY_FILE: input-listener-right-pmw3610.overlay
+  EXTRA_CONF_FILE: input-listener-right-pmw3610.conf
