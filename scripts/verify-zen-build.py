@@ -210,7 +210,7 @@ def verify_sources(repo: Path) -> None:
     right_overlay = repo / "boards/shields/zen/zen_right.overlay"
     right_text = read_text(right_overlay)
     for expected in (
-        "require-prior-idle-ms = <300>;",
+        "require-prior-idle-ms = <500>;",
         "<&zip_temp_layer 1 10000>;",
     ):
         require(right_text, expected, right_overlay)
@@ -419,7 +419,7 @@ def verify_build(build_dir: Path, repo: Path) -> None:
     for expected in (
         'compatible = "pixart,pmw3610-alt";',
         "cpi = < 0x4b0 >;",
-        "require-prior-idle-ms = < 0x12c >;",
+        "require-prior-idle-ms = < 0x1f4 >;",
         "excluded-positions = < 0x13 0x14 0x15 0x16 0x18 0x26 0x27 0x29 >;",
         "< &pmw3610_scroll_scaler 0x1 0x3c >;",
         *(f"{name} = < 0x{value:x} >;" for name, value in acceleration.items()),
