@@ -26,12 +26,12 @@
 
         exit_app {
             bindings = <&kp LG(Q)>;
-            key-positions = <9 10>;
+            key-positions = <10 11>;
         };
 
         log_off {
             bindings = <&kp LG(LC(Q))>;
-            key-positions = <47 48>;
+            key-positions = <48 49 48 49>;
         };
     };
 
