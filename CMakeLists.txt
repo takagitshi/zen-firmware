@@ -1,4 +1,17 @@
+# Zephyr appends DTS inputs after the early AML hook. Keep one rule per input.
+get_property(zen_configure_inputs DIRECTORY "${APPLICATION_SOURCE_DIR}" PROPERTY CMAKE_CONFIGURE_DEPENDS)
+set(zen_configure_inputs_normalized)
+foreach(zen_configure_input IN LISTS zen_configure_inputs)
+  get_filename_component(zen_configure_input "${zen_configure_input}" ABSOLUTE BASE_DIR "${APPLICATION_SOURCE_DIR}")
+  list(APPEND zen_configure_inputs_normalized "${zen_configure_input}")
+endforeach()
+list(REMOVE_DUPLICATES zen_configure_inputs_normalized)
+set_property(DIRECTORY "${APPLICATION_SOURCE_DIR}" PROPERTY CMAKE_CONFIGURE_DEPENDS "${zen_configure_inputs_normalized}")
+
 if(CONFIG_SHIELD_ZEN_LEFT OR CONFIG_SHIELD_ZEN_RIGHT)
+  if(NOT KEYMAP_FILE STREQUAL zen_aml_keymap)
+    message(FATAL_ERROR "ZEN AML generation and ZMK selected different keymaps")
+  endif()
   zephyr_library()
   zephyr_include_directories(${APPLICATION_SOURCE_DIR}/include)
   zephyr_include_directories(${CMAKE_CURRENT_LIST_DIR}/include)

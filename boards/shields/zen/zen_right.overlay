@@ -1,13 +1,14 @@
 #include "zen.dtsi"
 #include <input/processors.dtsi>
 #include <dt-bindings/zmk/input_transform.h>
+#include <aml-exclusions.h>
 
 /* AML (Auto Mouse Layer) がタイピング中の振動で誤爆しないよう、
  * デフォルトの zip_temp_layer に require-prior-idle-ms を追加する。
  * 直前 500ms 以内にキーコード入力(キー押下)があった場合は、
  * ポインティングデバイスの動きがあってもレイヤーを有効化しない。
  *
- * excluded-positions にはMouse Layerで明示的なキーを割り当てている位置を指定している。
+ * excluded-positions はビルド時にMouse Layerの明示的なbinding位置から自動生成する。
  * AML有効化中にこれらのキーを押してもAMLは解除されず、それ以外のキーを押すと
  * 即座にAMLが解除される。
  *
@@ -21,7 +22,7 @@
  */
 &zip_temp_layer {
     require-prior-idle-ms = <500>;
-    excluded-positions = <19 20 21 22 24 38 39 41>;
+    excluded-positions = <AML_EXCLUDED_POSITIONS>;
 };
 
 &gesture_processor {

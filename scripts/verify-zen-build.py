@@ -8,6 +8,7 @@ import re
 import struct
 import sys
 from pathlib import Path
+from aml_keymap import bindings, mouse_positions
 
 
 FORBIDDEN_BINARY_MARKERS = (
@@ -43,16 +44,7 @@ def reject(text: str, unexpected: str, source: Path) -> None:
 
 
 def parse_layer_bindings(layer: str, source: Path) -> list[str]:
-    match = re.search(r"bindings\s*=\s*<(?P<body>.*?)>;", layer, re.DOTALL)
-    if match is None:
-        fail(f"{source}: layer bindings are missing")
-    result: list[str] = []
-    for line in match.group("body").splitlines():
-        starts = list(re.finditer(r"&[A-Za-z0-9_]+", line))
-        for index, start in enumerate(starts):
-            end = starts[index + 1].start() if index + 1 < len(starts) else len(line)
-            result.append(re.sub(r"\s+", " ", line[start.start():end].strip()))
-    return result
+    return bindings(layer)
 
 
 def pointer_acceleration_settings(repo: Path) -> tuple[dict[str, int], bool]:
@@ -285,38 +277,15 @@ def verify_sources(repo: Path) -> None:
         if len(bindings) != 50:
             fail(f"{keymap}: layer {layer_id} must retain all 50 editable slots")
 
-    mouse_bindings = re.search(
-        r"bindings\s*=\s*<(?P<body>.*?)>;", layers[1], re.DOTALL
-    )
-    if mouse_bindings is None:
-        fail(f"{keymap}: Mouse layer bindings are missing")
-    mouse_binding_text = mouse_bindings.group("body")
-    for mouse_button in ("MB1", "MB2", "MB3"):
-        if re.search(
-            rf"&(?:mkp\s+{mouse_button}|mouse_lt\s+\d+\s+{mouse_button})\b",
-            mouse_binding_text,
-        ) is None:
-            fail(f"{keymap}: Mouse layer is missing {mouse_button}")
-    mouse_behaviors = re.findall(r"&([A-Za-z0-9_]+)\b", mouse_binding_text)
-    configured_mouse_positions = [
-        position
-        for position, behavior in enumerate(mouse_behaviors)
-        if behavior not in {"trans", "none"}
-    ]
-    excluded_match = re.search(
-        r"excluded-positions\s*=\s*<(?P<body>[^>]*)>;", right_text
-    )
-    if excluded_match is None:
-        fail(f"{right_overlay}: excluded-positions is missing")
-    excluded_positions = [int(value) for value in excluded_match.group("body").split()]
-    if excluded_positions != configured_mouse_positions:
-        fail(
-            f"{right_overlay}: excluded positions {excluded_positions} do not match "
-            f"configured Mouse layer positions {configured_mouse_positions}"
-        )
+    # User Mouse actions and locations are mutable; generation follows them.
+    require(right_text, "#include <aml-exclusions.h>", right_overlay)
+    require(right_text, "excluded-positions = <AML_EXCLUDED_POSITIONS>;", right_overlay)
+    hook = repo / "modules/modules.cmake"
+    for expected in ("generate-aml-exclusions.py", "KEYMAP_FILE", "DTS_EXTRA_CPPFLAGS",
+                     "CMAKE_CONFIGURE_DEPENDS", "--key-count 50"):
+        require(read_text(hook), expected, hook)
+    mouse_positions(keymap_text, mouse_layer=1, key_count=50)
 
-    if bindings_by_layer[1][22] != "&kp RIGHT_COMMAND":
-        fail(f"{keymap}: Mouse position 22 must retain the requested right Command key")
     gesture_2_access = bindings_by_layer[0] + bindings_by_layer[1]
     if not any(re.match(r"&(?:lt|mo)\s+4\b", item) for item in gesture_2_access):
         fail(f"{keymap}: Gesture 2 must remain reachable from Base or Mouse")
@@ -420,7 +389,6 @@ def verify_build(build_dir: Path, repo: Path) -> None:
         'compatible = "pixart,pmw3610-alt";',
         "cpi = < 0x4b0 >;",
         "require-prior-idle-ms = < 0x1f4 >;",
-        "excluded-positions = < 0x13 0x14 0x15 0x16 0x18 0x26 0x27 0x29 >;",
         "< &pmw3610_scroll_scaler 0x1 0x3c >;",
         *(f"{name} = < 0x{value:x} >;" for name, value in acceleration.items()),
         "zen-pointer-acceleration;",
@@ -428,6 +396,9 @@ def verify_build(build_dir: Path, repo: Path) -> None:
         "< &zip_xy_scaler 0x1 0x38 >, < &zip_xy_transform 0x3 >, < &zip_xy_to_scroll_mapper >, < &left_pmw3610_scroll_scaler 0x3 0x50 >;",
     ):
         require(dts_text, expected, dts)
+    positions = mouse_positions(read_text(repo / "config/keymap.keymap"), mouse_layer=1, key_count=50) or [65535]
+    exclusions = "excluded-positions = < " + " ".join(f"0x{position:x}" for position in positions) + " >;"
+    require(dts_text, exclusions, dts)
     for unexpected in (
         "runtime_input_processor",
         'compatible = "cormoran,pmw3610";',
