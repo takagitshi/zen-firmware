@@ -41,20 +41,20 @@
         layer_0 {
             display-name = "Base";
             bindings = <
-&kp ESCAPE        &kp Q         &kp W     &kp E             &kp R                 &kp T        &kp Y        &kp U          &lt 3 I    &kp O           &kp P           &kp TILDE
-&kp TAB           &kp A         &kp S     &kp D             &kp F                 &kp G        &kp H        &kp J          &lt 2 K    &kp L           &kp MINUS       &kp SEMICOLON
-&kp LSHFT         &kp Z         &kp X     &kp C             &kp V                 &kp B        &kp DELETE   &kp BACKSPACE  &kp N      &kp M           &lt 4 COMMA     &kp DOT          &kp UP_ARROW  &mt RSHIFT QUESTION
-&kp LEFT_COMMAND  &kp LEFT_ALT  &kp CAPS  &kp LEFT_COMMAND  &mt LCTRL LANGUAGE_2  &lt 5 LANG1  &lt 6 SPACE  &lt 7 ENTER    &kp RCTRL  &kp LEFT_ARROW  &kp DOWN_ARROW  &kp RIGHT_ARROW
+&kp ESCAPE        &kp Q         &kp W     &kp E      &kp R                        &kp T        &kp Y        &kp U          &lt 3 I            &kp O           &kp P           &kp TILDE
+&kp TAB           &kp A         &kp S     &kp D      &kp F                        &kp G        &kp H        &kp J          &lt 2 K            &kp L           &kp MINUS       &kp SEMICOLON
+&kp LSHFT         &kp Z         &kp X     &kp C      &kp V                        &kp B        &kp DELETE   &kp BACKSPACE  &kp N              &kp M           &lt 4 COMMA     &kp DOT          &kp UP_ARROW  &mt RSHIFT QUESTION
+&kp LEFT_COMMAND  &kp LEFT_ALT  &kp CAPS  &kp LCTRL  &mt LEFT_COMMAND LANGUAGE_2  &lt 5 LANG1  &lt 6 SPACE  &lt 7 ENTER    &kp RIGHT_COMMAND  &kp LEFT_ARROW  &kp DOWN_ARROW  &kp RIGHT_ARROW
             >;
         };
 
         layer_1 {
             display-name = "Mouse";
             bindings = <
-&trans            &trans        &trans  &trans            &trans  &trans  &trans  &trans    &trans           &trans    &trans             &trans
-&trans            &trans        &trans  &trans            &trans  &trans  &trans  &mkp MB1  &mouse_lt 2 MB3  &mkp MB2  &kp RIGHT_COMMAND  &trans
-&kp LSHIFT        &trans        &trans  &trans            &trans  &trans  &trans  &trans    &trans           &trans    &trans             &trans  &trans  &trans
-&kp LEFT_COMMAND  &kp LEFT_ALT  &trans  &kp LEFT_COMMAND  &trans  &trans  &trans  &trans    &trans           &trans    &trans             &trans
+&trans            &trans        &trans  &trans     &trans            &trans  &trans  &trans    &trans           &trans    &trans             &trans
+&trans            &trans        &trans  &trans     &trans            &trans  &trans  &mkp MB1  &mouse_lt 2 MB3  &mkp MB2  &kp RIGHT_COMMAND  &trans
+&kp LSHIFT        &trans        &trans  &trans     &trans            &trans  &trans  &trans    &trans           &trans    &trans             &trans  &trans  &trans
+&kp LEFT_COMMAND  &kp LEFT_ALT  &trans  &kp LCTRL  &kp LEFT_COMMAND  &trans  &trans  &trans    &trans           &trans    &trans             &trans
             >;
         };
 
